@@ -12,11 +12,11 @@ We use the **`type/description`** format.
 * `docs/` = Documentation changes only.
 
 ### **Examples:**
-✅ `feat/auth-login-page`
-✅ `fix/match-score-calculation`
-✅ `chore/setup-express`
-❌ `login-page` (Missing prefix)
-❌ `jason/fix` (Not descriptive)
+✅ `feat/auth-login-page`  
+✅ `fix/match-score-calculation`  
+✅ `chore/setup-express`  
+❌ `login-page` (Missing prefix)  
+❌ `jason/fix` (Not descriptive)  
 
 ---
 
@@ -31,7 +31,8 @@ Before creating your branch, **always** make sure you have the latest code to av
 ### Step 2: Create Your Branch
 Create a new branch based on the latest main.
 
-    # Syntax: git checkout -b <branch-name>
+Syntax: git checkout -b <branch-name>
+
 ```bash
     git checkout -b feat/user-dashboard
 ```
@@ -55,6 +56,6 @@ Push your branch.
 
 ---
 
-## 🛑 Rules of Thumb
+## Rules of Thumb
 1.  **One Feature per Branch:** Don't fix a bug in the navbar while working on the database. Create a separate branch.
 2.  **Delete after Merge:** Once your PR is merged, delete the branch to keep the repo clean.
