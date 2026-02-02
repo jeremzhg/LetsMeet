@@ -172,7 +172,7 @@ Accept or Reject a partnership proposal.
   "status": "accepted" // or "rejected"
 }
 ```
-
+## Pages
 
 ### 1. Public Pages (Authentication & Landing)
 
