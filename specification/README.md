@@ -1,6 +1,11 @@
 # LetsMeet (temp, name TBD)
 
-## High Level Explanation
+## Table of Contents
+*   [Explanation](#explanation)
+*   [ERD](#erd)
+*   [API Documentation (backend)](#api)
+*   [Pages Documentation (frontend)](#pages)
+## Explanation
 Scrapes potential partner(preset database for this project, allowed by lecturer), then do matching based on fit score. Organizations could see scraped partners who are potentially fit determined by a LLM, and corporations can go to events who are currently seeking partnerships also given a fit score. Fit score is determined by comparing event and organization details to corporation details and vice versa. 
 
 ## ERD
@@ -10,7 +15,7 @@ Scrapes potential partner(preset database for this project, allowed by lecturer)
 - isClaimed on corporation is incase a "scraped" corporation signs up to the website
 - pastEvents is to be used as additional context for fit score
 
-## API Documentation
+## API
 ### 1. Authentication & Onboarding
 **Note for Backend:**
 * **Corporation Registration:** Must implement "Claim Logic". Check if the domain exists in `Corporation` table.
@@ -167,3 +172,106 @@ Accept or Reject a partnership proposal.
   "status": "accepted" // or "rejected"
 }
 ```
+
+
+### 1. Public Pages (Authentication & Landing)
+
+#### **Landing Page**
+* **Route:** `/`
+* **Purpose:** Hero section explaining the "AI Matching" value prop. Two distinct call-to-action buttons: "For Organizations" and "For Corporations".
+* **Key Components:**
+    * Hero Banner ("Find your perfect sponsor in seconds").
+    * How it Works (Scrape -> Match -> Connect).
+
+#### **Auth Pages**
+* **Routes:**
+    * `/login/org` & `/register/org`
+    * `/login/corp` & `/register/corp`
+* **Purpose:** Entry points for the two user types.
+* **Key Logic:**
+    * **Corp Register:** When a user types their email/domain, show a small loader. *Backend Note:* This is where the system silently checks for the "Claim" logic, but the UI remains standard.
+* **Key API Calls:**
+    * `POST /auth/org/register`
+    * `POST /auth/corp/register`
+
+---
+
+### 2. Organization Portal 
+
+#### **Page: Organization Dashboard**
+* **Route:** `/org/dashboard`
+* **Purpose:** Overview of all events managed by this student organization.
+* **UI Components:**
+    * **"Create New Event" Button:** Prominent floating action button or header button.
+    * **Event Cards List:** Displays brief details (Title, Date).
+* **Key API Calls:**
+    * `GET /org/events` (Load list)
+
+#### **Page: Create / Edit Event**
+* **Route:** `/org/events/new` or `/org/events/:id/edit`
+* **Purpose:** Form to input event details.
+* **UI Components:**
+    * **Rich Text Editor:** For `details` (Crucial for the AI to work well—encourage users to be descriptive).
+    * **Save Button:** "Save & Find Matches" (Triggers the async matching).
+* **Key API Calls:**
+    * `POST /org/events` or `PUT /org/events/:id`
+
+#### **Page: Event Details & AI Matches (The Core Feature)**
+* **Route:** `/org/events/:id`
+* **Purpose:** The "Menu" where they pick sponsors.
+* **UI Components:**
+    * **Event Info Header:** Title, Date, Description.
+    * **The Match Table (Sorted by Score):**
+        * **Columns:** Company Name, Fit Score (displayed as a Green/Yellow/Red badge), AI Reasoning (Tooltip or expandable row).
+* **Key API Calls:**
+    * `GET /events/:id/matches` (The ordered list)
+    * `POST /partners/contact` (When "Send Proposal" is clicked)
+
+#### **Page: Partnership Inbox**
+* **Route:** `/org/inbox`
+* **Purpose:** Track status of sent proposals.
+* **UI Components:**
+    * **List View:** Grouped by Status (`Potential` -> `Contacted` -> `Accepted` / `Rejected`).
+* **Key API Calls:**
+    * `GET /partners/requests`
+
+---
+
+### 3. Corporation Portal 
+
+#### **Page: Opportunity Discovery**
+* **Route:** `/corp/dashboard`
+* **Purpose:** The "Feed" of relevant student events.
+* **UI Components:**
+    * **Smart Feed:** List of events sorted by `score`.
+    * **Fit Card:** Each event card highlights *why* it matches (e.g., "98% Fit - Matches your interest in Hackathons").
+* **Key API Calls:**
+    * `GET /corp/opportunities`
+
+#### **Page: Incoming Requests**
+* **Route:** `/corp/inbox`
+* **Purpose:** Review proposals sent by organizations.
+* **UI Components:**
+    * **Request Card:** Shows Event Name, Organization Name, and the Proposal.
+    * **Action Buttons:** "Accept" (Green), "Reject" (Red).
+* **Key API Calls:**
+    * `GET /partners/requests`
+    * `PUT /partners/status` (To accept/reject)
+
+#### **Page: Corporate Profile & History**
+* **Route:** `/corp/profile`
+* **Purpose:** View/Edit company details and see the scraped `pastEvents` history that the AI is using.
+* **UI Components:**
+    * **History List:** Read-only list of past sponsorships (e.g., "Open Source Summit 2024").
+* **Key API Calls:**
+    * `GET /corp/:id/history`
+
+---
+
+### 4. Shared Components (Design System)
+
+Some reusable components
+
+1.  **`ScoreBadge`:** A visual component that takes a number (0-100) and renders a color-coded badge (e.g., >90 = Green, 70-89 = Yellow, <70 = Grey).
+2.  **`MatchCard`:** A standard card layout used in both dashboards to display the "Opposite Party" details + Score.
+3.  **`RichTextDisplay`:** To render the `details` text safely (since it might be long).
