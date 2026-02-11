@@ -10,6 +10,7 @@ Purpose of folders:
 -   **`src/routes`**: Defines the API endpoints and maps them to controller functions.
 -   **`src/models`**: Contains interfaces and types representing the data structures used in the application.
 -   **`src/repositories`**: Database layer, where all Prisma calls should be.
+-   **`src/services`**: Contains the services of the application such as AIs, bcrypt, and jwt.
 -   **`src/index.ts`**: The entry point of the application, responsible for setting up the Express app and middleware.
 
 
@@ -30,11 +31,15 @@ Purpose of folders:
     cp .env.example .env
     ```
 
-2.  Update the `.env` file with your PostgreSQL database connection string:
+2.  Update the `.env` file with your PostgreSQL database connection string and gemini API key:
 
     ```env
     DATABASE_URL="postgresql://username:password@localhost:5432/db_name?schema=public"
+    GEMINI_API_KEY="your-api-key"
     ```
+
+#### Gemini API Key
+Head to https://aistudio.google.com/api-keys and press "Create API Key" located in the top right.  
 
 ### Database Setup
 
