@@ -7,19 +7,19 @@ const pool = new pg.Pool({connectionString: connStr});
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({adapter});
 
-export const findOrgByEmail = async (email: string): Promise<Organization | null> => {
+async function findOrgByEmail(email: string): Promise<Organization | null>{
   return await prisma.organization.findUnique({
     where: {email},
   });
 };
 
-export const createOrg = async (data: Prisma.OrganizationCreateInput): Promise<Organization> => {
+async function createOrg(data: Prisma.OrganizationCreateInput): Promise<Organization>{
   return await prisma.organization.create({
     data,
   });
 };
 
-export const findOrgById = async (id: string): Promise<Organization | null> => {
+async function findOrgById (id: string): Promise<Organization | null>{
   return await prisma.organization.findUnique({
     where: {id},
   });
