@@ -1,7 +1,7 @@
 import express from "express"
-import {connect, disconnect} from "./configs/db"
+import {connectDB, disconnectDB} from "./configs/db"
 
-connect()
+connectDB()
 
 const app = express()
 const port = 3000;
@@ -15,6 +15,6 @@ app.listen(port, () => {
 });
 
 process.on("SIGINT", async () => {
-  await disconnect();
+  await disconnectDB();
   process.exit(0);
 });
