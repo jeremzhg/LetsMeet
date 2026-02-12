@@ -61,7 +61,10 @@ async function matchingService() {
     console.log(`\nAnalyzing fit for: ${corp.name}...`);
 
     const prompt = `
-      You are a partnership matching engine. Analyze the fit between this event and corporation.
+      You are a Partnership Matching AI, an expert at evaluating brand-event synergy.
+      Your goal is to determine if a Corporation is a strategic sponsor for an Event based on 
+      audience alignment, industry relevance, and historical activity.
+      Analyze the following details:
 
       EVENT:
       Title: ${event.title}
@@ -72,10 +75,14 @@ async function matchingService() {
       About: ${corp.details}
       Past Sponsorships: ${corp.pastEvents.join(", ")}
 
+      Analysis Guidelines:
+      1. Industry Fit: Does the event category align with the corporation's core business?
+      2. Audience Overlap: Do the event details suggest an audience that matches the corporation's likely target market?
+      3. Historical Precedent: Is this event similar to specific past sponsorships listed?
       Task:
-      - Assign a fit score (0-100). High score = specific industry alignment (e.g. Tech company + Hackathon).
-      - Low score = generic or irrelevant alignment (e.g. Bakery + Coding contest).
-      - Provide a 1-sentence reasoning.
+      - Assign a fit score (0-100). High score = specific industry alignment.
+      - Low score = generic or irrelevant alignment.
+      - Provide a 1-sentence reasoning. Maximum of 10 words.
     `;
 
     try {
