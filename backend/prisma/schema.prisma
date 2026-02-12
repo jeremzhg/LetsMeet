@@ -36,6 +36,6 @@ model PastEvents {
   name           String
   details        String
   date           DateTime
-  corporationID
+  corporationID  String
   corporation Corporation @relation(fields: [corporationID], references: [id])
 }
