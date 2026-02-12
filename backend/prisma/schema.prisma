@@ -13,9 +13,29 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
+model Organization {
   id             String     @id @default(uuid())
   email          String     @unique
   name           String
   hashedPassword String
+  details        String
+}
+
+model Corporation {
+  id             String     @id @default(uuid())
+  email          String     @unique
+  name           String
+  hashedPassword String?
+  details        String
+  isClaimed      Boolean    @default(false)
+  pastEvents     PastEvents[]
+}
+
+model PastEvents {
+  id             String     @id @default(uuid())
+  name           String
+  details        String
+  date           DateTime
+  corporationID
+  corporation Corporation @relation(fields: [corporationID], references: [id])
 }
