@@ -19,3 +19,6 @@ async function verifyJWT(token: string): Promise<{ id: string; email: string; }>
     throw new Error('invalid or expired token.');
   }
 }
+
+
+export {verifyJWT, generateJWT}
