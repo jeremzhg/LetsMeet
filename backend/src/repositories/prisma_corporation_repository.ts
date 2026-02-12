@@ -7,19 +7,19 @@ const pool = new pg.Pool({connectionString: connStr});
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({adapter});
 
-async function findcorpByEmail(email: string): Promise<Corporation | null>{
+async function findCorpByEmail(email: string): Promise<Corporation | null>{
   return await prisma.corporation.findUnique({
     where: {email},
   });
 };
 
-async function createcorp(data: Prisma.CorporationCreateInput): Promise<Corporation>{
+async function createCorp(data: Prisma.CorporationCreateInput): Promise<Corporation>{
   return await prisma.corporation.create({
     data,
   });
 };
 
-async function findcorpById (id: string): Promise<Corporation | null>{
+async function findCorpById (id: string): Promise<Corporation | null>{
   return await prisma.corporation.findUnique({
     where: {id},
   });
@@ -43,3 +43,5 @@ async function claimCorp(
     },
   });
 };
+
+export {findCorpByEmail, findCorpById, claimCorp, createCorp }

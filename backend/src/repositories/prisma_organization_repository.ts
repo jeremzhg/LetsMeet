@@ -24,3 +24,5 @@ async function findOrgById (id: string): Promise<Organization | null>{
     where: {id},
   });
 };
+
+export {findOrgByEmail, findOrgById, createOrg}
