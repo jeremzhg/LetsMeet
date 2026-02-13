@@ -1,11 +1,5 @@
-import { PrismaClient, Prisma, Organization } from "../generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import pg from "pg";
-
-const connStr = process.env.DATABASE_URL;
-const pool = new pg.Pool({connectionString: connStr});
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({adapter});
+import { Prisma, Organization } from "../generated/prisma/client";
+import { prisma } from "../configs/db";
 
 async function findOrgByEmail(email: string): Promise<Organization | null>{
   return await prisma.organization.findUnique({
