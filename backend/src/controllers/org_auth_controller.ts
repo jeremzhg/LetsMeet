@@ -10,6 +10,11 @@ async function registerOrg(req: Request, res: Response){
       return res.status(400).json({error: "bad request"});
     }
 
+    const exist = OrgRepo.findOrgByEmail(email)
+    if(!exist){
+      return res.status(409).json({error: "email already taken"})
+    }
+    
     const hashedPassword = await BcryptService.hashPassword(password);
 
     await OrgRepo.createOrg({
