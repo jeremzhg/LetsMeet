@@ -7,7 +7,8 @@ async function hashPassword(plainText: string): Promise<string> {
   return result
 }
 
-async function comparePassword(plainText: string, hash: string): Promise<boolean> {
+async function comparePassword(plainText: string, hash: string | null): Promise<boolean> {
+  if (!hash) return false;
   const ok = await bcrypt.compare(plainText, hash)
   return ok
 }
