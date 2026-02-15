@@ -3,7 +3,7 @@ import * as OrgRepo from '../repositories/prisma_organization_repository';
 import * as JwtService from '../services/jwt_service';
 import * as BcryptService from '../services/bcrypt_service';
 
-async function RegisterOrg(req: Request, res: Response){
+async function registerOrg(req: Request, res: Response){
   try{
     const {email, name, password, details} = req.body;
     if (!email || !name || !password || !details){
@@ -19,7 +19,7 @@ async function RegisterOrg(req: Request, res: Response){
       details: details,
     })
     
-    return res.status(201).json({ message: "user created successfully" });
+    return res.status(201).json({ message: "organization created successfully" });
 
   }catch (error: unknown) {
       if (error instanceof Error) {
@@ -29,7 +29,7 @@ async function RegisterOrg(req: Request, res: Response){
     }
 }
 
-async function OrgLogin(req: Request, res: Response){
+async function orgLogin(req: Request, res: Response){
   try {
       const { email, password } = req.body;
       if (!email || !password) {
@@ -66,5 +66,5 @@ async function OrgLogin(req: Request, res: Response){
     }
 }
 
-export {OrgLogin, RegisterOrg}
+export {orgLogin, registerOrg}
 
