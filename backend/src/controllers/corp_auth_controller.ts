@@ -23,6 +23,11 @@ async function registerCorp(req: Request, res: Response) {
 
       return res.status(201).json({ message: "corporation created successfully" });
     }
+    
+    if (exist.isClaimed) {
+      return res.status(409).json({ error: "corporation with that email already exists" });
+    }
+
     await CorpRepo.claimCorp(exist.id, {
       name: name,
       hashedPassword: hashedPassword,
@@ -70,6 +75,8 @@ async function corpLogin(req: Request, res: Response) {
       });
 
       return res.status(200).json({ message: "login successful", role: "corporation" });
+    }else{
+      return res.status(403).json({ error: "account not claimed" });
     }
   } catch (error: unknown) {
     if (error instanceof Error) {
