@@ -1,18 +1,22 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Landing from "./pages/Landing";
+import { useState } from "react";
 
+import Landing from "./pages/Landing";
 import GuestNavbar from "./components/GuestNavbar";
 
 const App = () => {
+  const [navHeight, setNavHeight] = useState(0);
+
   return (
-    <>
-      <BrowserRouter>
-        <GuestNavbar />
+    <BrowserRouter>
+      <GuestNavbar onHeightChange={setNavHeight} />
+
+      <main style={{ paddingTop: `${navHeight}px` }}>
         <Routes>
           <Route path="/" element={<Landing />} />
         </Routes>
-      </BrowserRouter>
-    </>
+      </main>
+    </BrowserRouter>
   );
 };
 
