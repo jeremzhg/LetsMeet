@@ -24,7 +24,7 @@ async function registerCorp(req: Request, res: Response) {
 
       return res.status(201).json({ message: "corporation created successfully" });
     }
-    
+
     if (exist.isClaimed) {
       return res.status(409).json({ error: "corporation with that email already exists" });
     }
@@ -67,6 +67,7 @@ async function corpLogin(req: Request, res: Response) {
       const token = await JwtService.generateJWT({
         id: corp.id,
         email: corp.email,
+        role: 'corp',
       });
 
       res.cookie("access_token", token, {

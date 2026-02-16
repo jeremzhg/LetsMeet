@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { logout } from "../controllers/auth_controller";
+import { logout, verify } from "../controllers/auth_controller";
 import { registerCorp, corpLogin } from "../controllers/corp_auth_controller";
 import { registerOrg, orgLogin } from "../controllers/org_auth_controller";
 
@@ -10,5 +10,6 @@ router.post("/corp/login", corpLogin)
 router.post("/org/register", registerOrg)
 router.post("/org/login", orgLogin)
 router.post("/logout", logout)
+router.get("/me", verify)
 
 export {router as AuthRouter}
