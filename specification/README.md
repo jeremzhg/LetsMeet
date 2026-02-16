@@ -61,7 +61,19 @@ Login for Corporations.
   "password": "securePassword123"
 }
 ```
-
+#### `GET /auth/me`
+Returns the user, used to determine which view to render depending on the role  
+Response body:
+```json
+{
+    "message": "verified",
+    "user": {
+        "id": "71fa76d7-3211-480a-bf19-e68bd05bce29",
+        "email": "marketing@google.com",
+        "role": "corporation"
+    }
+}
+```
 ---
 
 ### 2. Event Management 
