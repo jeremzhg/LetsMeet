@@ -66,6 +66,7 @@ Login for Corporations.
 
 logout for everyone  
 no response body, just make sure to set withCredentials: true
+
 ---
 
 ### 2. Event Management 
