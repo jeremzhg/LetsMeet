@@ -61,6 +61,7 @@ Login for Corporations.
   "password": "securePassword123"
 }
 ```
+<<<<<<< HEAD
 #### `GET /auth/me`
 Returns the user, used to determine which view to render depending on the role  
 Response body:
@@ -74,6 +75,14 @@ Response body:
     }
 }
 ```
+=======
+
+#### `POST /auth/logout`  
+
+logout for everyone  
+no response body, just make sure to set withCredentials: true
+
+>>>>>>> dc8c1b9687aba02b7edb5fd6dbecf4f484ae9fef
 ---
 
 ### 2. Event Management 
