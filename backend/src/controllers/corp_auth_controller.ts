@@ -19,6 +19,7 @@ async function registerCorp(req: Request, res: Response) {
         name: name,
         hashedPassword: hashedPassword,
         details: details,
+        isClaimed: true,
       })
 
       return res.status(201).json({ message: "corporation created successfully" });
