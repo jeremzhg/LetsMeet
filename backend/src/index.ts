@@ -1,6 +1,6 @@
 import express from "express"
 import {connectDB, disconnectDB} from "./configs/db"
-
+import { AuthRouter } from "./routes/auth_route"
 connectDB()
 
 const app = express()
@@ -13,6 +13,8 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);
 });
+
+app.use("/auth", AuthRouter)
 
 process.on("SIGINT", async () => {
   await disconnectDB();

@@ -10,3 +10,5 @@ router.post("/corp/login", corpLogin)
 router.post("/org/register", registerOrg)
 router.post("/org/login", orgLogin)
 router.post("/logout", logout)
+
+export {router as AuthRouter}
