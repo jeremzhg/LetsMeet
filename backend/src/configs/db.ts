@@ -7,7 +7,7 @@ const pool = new pg.Pool({connectionString: connStr});
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({adapter});
 
-const connect = async () => {
+async function connectDB(){
   try {
     await prisma.$connect();
     console.log("PrismaClient connected successfully.");
@@ -16,7 +16,7 @@ const connect = async () => {
   }
 };
 
-const disconnect = async () => {
+async function disconnectDB(){
   try {
     await prisma.$disconnect();
     console.log("PrismaClient disconnected successfully.");
@@ -25,4 +25,4 @@ const disconnect = async () => {
   }
 };
 
-export {connect, disconnect};
+export {connectDB, disconnectDB};
