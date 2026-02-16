@@ -62,7 +62,8 @@ Login for Corporations.
 }
 ```
 
-#### `POST /auth/logout`
+#### `POST /auth/logout`  
+
 logout for everyone  
 no response body, just make sure to set withCredentials: true
 ---
