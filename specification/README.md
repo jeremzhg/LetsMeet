@@ -61,12 +61,28 @@ Login for Corporations.
   "password": "securePassword123"
 }
 ```
+<<<<<<< HEAD
+#### `GET /auth/me`
+Returns the user, used to determine which view to render depending on the role  
+Response body:
+```json
+{
+    "message": "verified",
+    "user": {
+        "id": "71fa76d7-3211-480a-bf19-e68bd05bce29",
+        "email": "marketing@google.com",
+        "role": "corporation"
+    }
+}
+```
+=======
 
 #### `POST /auth/logout`  
 
 logout for everyone  
 no response body, just make sure to set withCredentials: true
 
+>>>>>>> dc8c1b9687aba02b7edb5fd6dbecf4f484ae9fef
 ---
 
 ### 2. Event Management 

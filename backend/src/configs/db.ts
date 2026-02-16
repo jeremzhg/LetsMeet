@@ -25,4 +25,5 @@ async function disconnectDB(){
   }
 };
 
-export {connectDB, disconnectDB};
+
+export {connectDB, disconnectDB, prisma};
