@@ -13,7 +13,7 @@ declare global {
   }
 }
 
-export const authenticate = async (req: Request, res: Response, next: NextFunction) => {
+async function authMiddleware(req: Request, res: Response, next: NextFunction){
   try {
     const token = req.cookies.access_token;
 
@@ -30,3 +30,5 @@ export const authenticate = async (req: Request, res: Response, next: NextFuncti
     return res.status(401).json({ error: "unauthorized: invalid token" });
   }
 };
+
+export {authMiddleware}
