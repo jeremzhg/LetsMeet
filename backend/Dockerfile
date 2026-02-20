@@ -10,7 +10,7 @@ FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN DATABASE_URL="postgresql://dummy:5432/mydb" npx prisma generate
+RUN npx prisma generate
 RUN npm run build
 RUN npm prune --omit=dev
 
