@@ -61,7 +61,6 @@ Login for Corporations.
   "password": "securePassword123"
 }
 ```
-<<<<<<< HEAD
 #### `GET /auth/me`
 Returns the user, used to determine which view to render depending on the role  
 Response body:
@@ -75,14 +74,12 @@ Response body:
     }
 }
 ```
-=======
 
 #### `POST /auth/logout`  
 
 logout for everyone  
 no response body, just make sure to set withCredentials: true
 
->>>>>>> dc8c1b9687aba02b7edb5fd6dbecf4f484ae9fef
 ---
 
 ### 2. Event Management 
@@ -126,14 +123,12 @@ Update an event.
     "corporationID": "uuid-1",
     "name": "Tech Corp",
     "score": 98.5,
-    "isClaimed": true,
     "aiReasoning": "Tech Corp has a history of sponsoring hackathons..."
   },
   {
     "corporationID": "uuid-2",
     "name": "Bank of Scraped Data",
     "score": 85.0,
-    "isClaimed": false,
     "aiReasoning": "Financial institutions often look for..."
   }
 ]
