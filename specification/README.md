@@ -1,5 +1,9 @@
 # LetsMeet (temp, name TBD)
 
+TODO: some changes calls still dont make sense:
+- add inbox for org from corp outreach. prob just on a specific event
+- org fully manages partnership status
+  
 ## Table of Contents
 *   [Explanation](#explanation)
 *   [ERD](#erd)
@@ -133,22 +137,18 @@ Update an event.
   }
 ]
 ```
+#### `POST /events/:id/matches`
+**(For Org)** add a partnerhsip that has been approved.
 
-#### `GET /corp/opportunities`
-**(For Corp)** Get a ranked list of Events that fit the logged-in Corporation's profile.
-* **Response:**
+* **Response Body:**
 ```json
 [
-  {
-    "eventID": "uuid-5",
-    "title": "CS Career Fair",
-    "orgName": "University CS Dept",
-    "score": 92.0,
-    "date": "2026-11-05"
-  }
+    "eventID": "id-123",
+    "corporationID": "uuid-1",
+    "status": "accepted or pending or declined"
 ]
 ```
-
+Backend then adds this to the partners table.
 #### `GET /corp/:id/history`
 Get the `pastEvents` list for a corporation (provides context on what they usually sponsor).
 * **Response:**
@@ -255,21 +255,13 @@ Accept or Reject a partnership proposal.
 
 ### 3. Corporation Portal 
 
-#### **Page: Opportunity Discovery**
-* **Route:** `/corp/dashboard`
-* **Purpose:** The "Feed" of relevant student events.
-* **UI Components:**
-    * **Smart Feed:** List of events sorted by `score`.
-    * **Fit Card:** Each event card highlights *why* it matches (e.g., "98% Fit - Matches your interest in Hackathons").
-* **Key API Calls:**
-    * `GET /corp/opportunities`
 
-#### **Page: Incoming Requests**
-* **Route:** `/corp/inbox`
-* **Purpose:** Review proposals sent by organizations.
+#### **Page: Forum**
+* **Route:** `/events`
+* **Purpose:** View current events that are being hosted.
 * **UI Components:**
     * **Request Card:** Shows Event Name, Organization Name, and the Proposal.
-    * **Action Buttons:** "Accept" (Green), "Reject" (Red).
+    * **Action Buttons:** "Send proposal".
 * **Key API Calls:**
     * `GET /partners/requests`
     * `PUT /partners/status` (To accept/reject)
