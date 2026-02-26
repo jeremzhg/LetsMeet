@@ -73,7 +73,26 @@ export const getEventById = async (req: Request, res: Response) => {
       success: true,
       data: event,
     });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return res.status(409).json({ error: error.message });
+    }
+    return res.status(500).json({ error: "internal server error" });
+  }
+};
 
+export const updateEvent = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    const updatedEvent = await EventRepo.updateEvent(id as string, updateData);
+
+    return res.status(200).json({
+      success: true,
+      message: "Event updated successfully",
+      data: updatedEvent,
+    });
   } catch (error: unknown) {
     if (error instanceof Error) {
       return res.status(409).json({ error: error.message });
