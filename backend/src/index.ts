@@ -2,7 +2,7 @@ import "dotenv/config";
 import express from "express"
 import { connectDB, disconnectDB } from "./configs/db"
 import { AuthRouter } from "./routes/auth_route"
-import { OrganizationRouter } from "./routes/organization_route"
+import { EventManagementRouter } from "./routes/event_management_route"
 import cookieParser from "cookie-parser"
 connectDB()
 
@@ -20,7 +20,7 @@ app.listen(port, () => {
 });
 
 app.use("/auth", AuthRouter)
-app.use("/org", OrganizationRouter)
+app.use("/org", EventManagementRouter)
 
 process.on("SIGINT", async () => {
   await disconnectDB();

@@ -1,7 +1,7 @@
 import { Prisma, Events } from "../generated/prisma/client";
 import { prisma } from "../configs/db";
 
-async function getAllEvents(): Promise<Events[]> {
+export async function getAllEvents(): Promise<Events[]> {
     try {
       return await prisma.events.findMany({
         include: {
@@ -25,4 +25,21 @@ async function getAllEvents(): Promise<Events[]> {
     }
 }
 
-export { getAllEvents }
+export async function createEvent(data: {
+  title: string;
+  date: string | Date;
+  details: string;
+  organizationID: string;
+}): Promise<Events> {
+  return await prisma.events.create({
+    data: {
+      title: data.title,
+      details: data.details,
+      date: new Date(data.date),
+
+      organization: {
+        connect: { id: data.organizationID }
+      }
+    }
+  });
+}
