@@ -1,7 +1,11 @@
 import { useRef, useEffect, useState } from "react";
 
-const GuestNavbar = ({ onHeightChange }) => {
-  const navRef = useRef(null);
+interface GuestNavbarProps {
+  onHeightChange: (height: number) => void;
+}
+
+const GuestNavbar = ({ onHeightChange }: GuestNavbarProps) => {
+  const navRef = useRef<HTMLElement>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
