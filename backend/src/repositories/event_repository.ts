@@ -2,27 +2,27 @@ import { Prisma, Events } from "../generated/prisma/client";
 import { prisma } from "../configs/db";
 
 export async function getAllEvents(): Promise<Events[]> {
-    try {
-      return await prisma.events.findMany({
-        include: {
-          organization: {
-            select: {
-              name: true,
-              email: true,
-            },
-          },
-          _count: {
-            select: { partners: true },
+  try {
+    return await prisma.events.findMany({
+      include: {
+        organization: {
+          select: {
+            name: true,
+            email: true,
           },
         },
-        orderBy: {
-          date: 'desc',
+        _count: {
+          select: { partners: true },
         },
-      });
-    } catch (error) {
-      console.error("Error fetching events:", error);
-      throw new Error("Could not retrieve events from the database.");
-    }
+      },
+      orderBy: {
+        date: "desc",
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching events:", error);
+    throw new Error("Could not retrieve events from the database.");
+  }
 }
 
 export async function createEvent(data: {
@@ -38,8 +38,14 @@ export async function createEvent(data: {
       date: new Date(data.date),
 
       organization: {
-        connect: { id: data.organizationID }
-      }
-    }
+        connect: { id: data.organizationID },
+      },
+    },
+  });
+}
+
+export async function findEventById(id: string): Promise<Events | null> {
+  return await prisma.events.findUnique({
+    where: { id },
   });
 }
