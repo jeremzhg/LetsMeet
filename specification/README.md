@@ -167,7 +167,7 @@ Get the `pastEvents` list for a corporation (provides context on what they usual
 
 ### 4. Partnership Management
 
-#### `POST /partners/contact`
+#### `POST /partners`
 Initiate a partnership (Send Proposal).
 ```json
 {
@@ -176,18 +176,18 @@ Initiate a partnership (Send Proposal).
 }
 ```
 
-#### `GET /partners/requests`
-View pending partnership requests for the logged-in user.
-
-#### `PUT /partners/status`
-Accept or Reject a partnership proposal.
+#### `PUT /partners/:id`
+Update the sponsorship status(manual, org only).
 ```json
 {
   "eventID": "uuid-of-event",
   "corporationID": "uuid-of-corp",
-  "status": "accepted" // or "rejected"
+  "status": "accepted" // or "rejected" // or "pending"
 }
 ```
+
+#### `GET /partners/requests`
+View pending partnership requests for the logged-in user.
 ## Pages
 
 ### 1. Public Pages (Authentication & Landing)
