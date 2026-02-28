@@ -1,9 +1,5 @@
 # LetsMeet (temp, name TBD)
 
-TODO: some changes calls still dont make sense:
-- add inbox for org from corp outreach. prob just on a specific event
-- org fully manages partnership status
-  
 ## Table of Contents
 *   [Explanation](#explanation)
 *   [ERD](#erd)
@@ -88,8 +84,14 @@ no response body, just make sure to set withCredentials: true
 
 ### 2. Event Management 
 
-#### `GET /org/events`
+#### `GET /events`
 Retrieve all events
+
+#### `GET /org/events/:userID`
+Retrieve all events from a specific organization
+
+#### `GET /corp/events/:userID`
+Retrieve all events that a specific corporation has done partnerships in any status.
 
 #### `POST /org/events`
 Create a new event.
@@ -98,11 +100,15 @@ Create a new event.
   "title": "Annual Hackathon 2026",
   "date": "2026-10-10T09:00:00Z",
   "details": "A 24-hour hackathon focused on AI and sustainability..."
+  "status" : pending or in progress or completed
 }
 ```
 
 #### `GET /org/events/:id`
 Get details of a specific event.
+
+#### `GET /org/events/:id/partners`
+Retrieve the potential partners and their status for a specific event.
 
 #### `PUT /org/events/:id`
 Update an event.
@@ -112,7 +118,7 @@ Update an event.
   "details": "Updated details regarding the venue..."
 }
 ```
-
+**When an event is completed, add corporations with partnership status of "accepted" to pastHistory table**
 ---
 
 ### 3. AI Discovery & Matching
@@ -137,18 +143,26 @@ Update an event.
   }
 ]
 ```
-#### `POST /events/:id/matches`
-**(For Org)** add a partnerhsip that has been approved.
 
-* **Response Body:**
+#### `GET /corp/:id/matches`
+**(For Corp)** Get a ranked list of Events that fit a specific event.
+* **Response:**
 ```json
 [
-    "eventID": "id-123",
-    "corporationID": "uuid-1",
-    "status": "accepted or pending or declined"
+  {
+    "eventID": "uuid-1",
+    "name": "Tech Org",
+    "score": 98.5,
+    "aiReasoning": "yeah good event"
+  },
+  {
+    "eventID": "uuid-2",
+    "name": "Tech Org 2",
+    "score": 60.5,
+    "aiReasoning": "yeah bad event"
+  },
 ]
 ```
-Backend then adds this to the partners table.
 #### `GET /corp/:id/history`
 Get the `pastEvents` list for a corporation (provides context on what they usually sponsor).
 * **Response:**
@@ -182,14 +196,14 @@ Update the sponsorship status(manual, org only).
 {
   "eventID": "uuid-of-event",
   "corporationID": "uuid-of-corp",
-  "status": "accepted" // or "rejected" // or "pending"
+  "status": "accepted" or "rejected"  or "pending"
 }
 ```
 
 #### `GET /partners/requests`
-View pending partnership requests for the logged-in user.
-## Pages
+View pending partnership requests for the logged-in user.## Pages
 
+## Pages
 ### 1. Public Pages (Authentication & Landing)
 
 #### **Landing Page**
@@ -219,9 +233,9 @@ View pending partnership requests for the logged-in user.
 * **Purpose:** Overview of all events managed by this student organization.
 * **UI Components:**
     * **"Create New Event" Button:** Prominent floating action button or header button.
-    * **Event Cards List:** Displays brief details (Title, Date).
+    * **Event Cards List:** Displays brief details (Title, Date, Status).
 * **Key API Calls:**
-    * `GET /org/events` (Load list)
+    * `GET /org/events/:userID` (Load list)
 
 #### **Page: Create / Edit Event**
 * **Route:** `/org/events/new` or `/org/events/:id/edit`
@@ -232,43 +246,41 @@ View pending partnership requests for the logged-in user.
 * **Key API Calls:**
     * `POST /org/events` or `PUT /org/events/:id`
 
-#### **Page: Event Details & AI Matches (The Core Feature)**
+#### **Page: Event Workspace (Matches & Inbox)**
 * **Route:** `/org/events/:id`
-* **Purpose:** The "Menu" where they pick sponsors.
+* **Purpose:** The central hub for an event, split into tabs for finding sponsors and managing the partnership pipeline.
 * **UI Components:**
     * **Event Info Header:** Title, Date, Description.
-    * **The Match Table (Sorted by Score):**
-        * **Columns:** Company Name, Fit Score (displayed as a Green/Yellow/Red badge), AI Reasoning (Tooltip or expandable row).
+    * **Tab 1: AI Matches (Discovery):**
+        * **The Match Table (Sorted by Score):**
+            * **Columns:** Company Name, Fit Score (displayed as a Green/Yellow/Red badge), AI Reasoning (Tooltip or expandable row).
+        * **Action:** "Status" button for each row.
+    * **Tab 2: Inbox & Pipeline (Management):**
+        * **Kanban or List View:** Shows all active partnerships for this event, grouped by Status (e.g., `Applied` [from corps], `Contacted` [by org], `Accepted`, `Rejected`).
+        * **Action:** Dropdowns to manually update the status of any partnership.
 * **Key API Calls:**
-    * `GET /events/:id/matches` (The ordered list)
-    * `POST /partners/contact` (When "Send Proposal" is clicked)
-
-#### **Page: Partnership Inbox**
-* **Route:** `/org/inbox`
-* **Purpose:** Track status of sent proposals.
-* **UI Components:**
-    * **List View:** Grouped by Status (`Potential` -> `Contacted` -> `Accepted` / `Rejected`).
-* **Key API Calls:**
-    * `GET /partners/requests`
+    * `GET /org/events/:id`
+    * `GET /events/:id/matches`
+    * `GET /events/:id/partners`
+    * `POST /partners`
+    * `PUT /partners/:id`
 
 ---
 
 ### 3. Corporation Portal 
 
-
-#### **Page: Forum**
+#### **Page: Event Forum**
 * **Route:** `/events`
-* **Purpose:** View current events that are being hosted.
+* **Purpose:** View current events that are actively seeking partnerships.
 * **UI Components:**
-    * **Request Card:** Shows Event Name, Organization Name, and the Proposal.
-    * **Action Buttons:** "Send proposal".
+    * **Event Cards:** Shows Event Name, Organization Name, Event Details, and the AI Fit Score for the logged-in corporation.
+    * **Action Button:** "Apply for Partnership".
 * **Key API Calls:**
-    * `GET /partners/requests`
-    * `PUT /partners/status` (To accept/reject)
-
+    * `GET /events`
+    * `POST /partners`
 #### **Page: Corporate Profile & History**
 * **Route:** `/corp/profile`
-* **Purpose:** View/Edit company details and see the scraped `pastEvents` history that the AI is using.
+* **Purpose:** View/Edit company details and see the scraped `pastEvents` history that the AI is using for context.
 * **UI Components:**
     * **History List:** Read-only list of past sponsorships (e.g., "Open Source Summit 2024").
 * **Key API Calls:**
@@ -278,8 +290,9 @@ View pending partnership requests for the logged-in user.
 
 ### 4. Shared Components (Design System)
 
-Some reusable components
+Some reusable components:
 
 1.  **`ScoreBadge`:** A visual component that takes a number (0-100) and renders a color-coded badge (e.g., >90 = Green, 70-89 = Yellow, <70 = Grey).
 2.  **`MatchCard`:** A standard card layout used in both dashboards to display the "Opposite Party" details + Score.
 3.  **`RichTextDisplay`:** To render the `details` text safely (since it might be long).
+4.  **`StatusPill`:** A small tag indicating partnership status (`Pending`, `Contacted`, `Accepted`, etc.) for use in the Event Workspace inbox.
