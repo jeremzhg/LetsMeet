@@ -2,20 +2,21 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 
 import Landing from "./pages/Landing";
-import GuestNavbar from "./components/GuestNavbar";
+import Navbar, { NavbarVariant } from "./components/Navbar";
 
 const App = () => {
-  const [navHeight, setNavHeight] = useState(0);
+  // Try changing this to "corporation" or "student" to test
+  const [userRole] = useState<NavbarVariant>("guest");
 
   return (
     <BrowserRouter>
-      <GuestNavbar onHeightChange={setNavHeight} />
+      <Navbar variant={userRole} />
 
-      <main style={{ paddingTop: `${navHeight}px` }}>
+      <div>
         <Routes>
           <Route path="/" element={<Landing />} />
         </Routes>
-      </main>
+      </div>
     </BrowserRouter>
   );
 };
