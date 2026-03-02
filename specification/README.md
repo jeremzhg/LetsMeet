@@ -187,6 +187,7 @@ Initiate a partnership (Send Proposal).
 {
   "eventID": "uuid-of-event",
   "corporationID": "uuid-of-corp"
+  'status" : "pending" //default
 }
 ```
 
@@ -201,7 +202,7 @@ Update the sponsorship status(manual, org only).
 ```
 
 #### `GET /partners/requests`
-View pending partnership requests for the logged-in user.## Pages
+View pending partnership requests for the logged-in user.
 
 ## Pages
 ### 1. Public Pages (Authentication & Landing)
