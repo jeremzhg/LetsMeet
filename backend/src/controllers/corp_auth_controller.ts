@@ -5,8 +5,8 @@ import * as BcryptService from '../services/bcrypt_service';
 
 async function registerCorp(req: Request, res: Response) {
   try {
-    const { email, name, password, details } = req.body;
-    if (!email || !name || !password || !details) {
+    const { email, name, password, details, category } = req.body;
+    if (!email || !name || !password || !details || !category) {
       return res.status(400).json({ error: "bad request" });
     }
 
@@ -19,6 +19,7 @@ async function registerCorp(req: Request, res: Response) {
         name: name,
         hashedPassword: hashedPassword,
         details: details,
+        category: category,
         isClaimed: true,
       })
 
