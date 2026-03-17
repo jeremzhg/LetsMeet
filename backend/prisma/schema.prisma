@@ -28,6 +28,7 @@ model Corporation {
   name           String
   hashedPassword String?
   details        String
+  category       String
   isClaimed      Boolean    @default(false)
   pastEvents     PastEvents[]
   partners       Partners[]
@@ -44,25 +45,41 @@ model PastEvents {
 }
 
 model Events {
-  id        String       @id @default(uuid())
-  details   String       @db.Text
-  title     String
-  date      DateTime
-  organizationID String
-  organization   Organization @relation(fields: [organizationID], references: [id])
-  partners       Partners[]
-  matchScores    MatchScore[]
+  id                   String       @id @default(uuid())
+  details              String       @db.Text
+  title                String
+  date                 DateTime
+  country              String
+  city                 String
+  expectedParticipants Int
+  organizationID       String
+  organization         Organization @relation(fields: [organizationID], references: [id])
+  partners             Partners[]
+  matchScores          MatchScore[]
+  packages             Package[]
 }
 
 model Partners {
   eventID       String
   corporationID String
   status        String
-  
+  packageID     String?
+
   event       Events      @relation(fields: [eventID], references: [id])
   corporation Corporation @relation(fields: [corporationID], references: [id])
+  package     Package?    @relation(fields: [packageID], references: [id])
 
   @@id([eventID, corporationID])
+}
+
+model Package {
+  id        String     @id @default(uuid())
+  cost      Int
+  title     String     @db.Text
+  details   String     @db.Text
+  eventID   String
+  event     Events     @relation(fields: [eventID], references: [id])
+  partners  Partners[]
 }
 
 model MatchScore {
