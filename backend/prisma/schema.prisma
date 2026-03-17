@@ -19,6 +19,7 @@ model Organization {
   name           String
   hashedPassword String
   details        String
+  events         Events[]
 }
 
 model Corporation {
@@ -29,6 +30,8 @@ model Corporation {
   details        String
   isClaimed      Boolean    @default(false)
   pastEvents     PastEvents[]
+  partners       Partners[]
+  matchScores    MatchScore[]
 }
 
 model PastEvents {
@@ -38,4 +41,38 @@ model PastEvents {
   date           DateTime
   corporationID  String
   corporation Corporation @relation(fields: [corporationID], references: [id])
+}
+
+model Events {
+  id        String       @id @default(uuid())
+  details   String       @db.Text
+  title     String
+  date      DateTime
+  organizationID String
+  organization   Organization @relation(fields: [organizationID], references: [id])
+  partners       Partners[]
+  matchScores    MatchScore[]
+}
+
+model Partners {
+  eventID       String
+  corporationID String
+  status        String
+  
+  event       Events      @relation(fields: [eventID], references: [id])
+  corporation Corporation @relation(fields: [corporationID], references: [id])
+
+  @@id([eventID, corporationID])
+}
+
+model MatchScore {
+  eventID       String
+  corporationID String
+  score         Float
+  reasoning     String? @db.Text // Nullable as per ERD
+
+  event       Events      @relation(fields: [eventID], references: [id])
+  corporation Corporation @relation(fields: [corporationID], references: [id])
+
+  @@id([eventID, corporationID])
 }
