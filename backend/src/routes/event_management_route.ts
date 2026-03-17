@@ -4,9 +4,17 @@ import * as EventManagementController from '../controllers/event_management_cont
 
 const router = Router();
 
+// public
 router.get('/events', EventManagementController.getAllEvents);
-router.post('/events', authMiddleware, EventManagementController.createEvent);
-router.get('/events/:id', EventManagementController.getEventById);
-router.put('/events/:id', EventManagementController.updateEvent);
 
-export {router as EventManagementRouter};
+// org routes
+router.get('/org/events/:userID', EventManagementController.getOrgEvents);
+router.post('/org/events', authMiddleware, EventManagementController.createEvent);
+router.get('/org/events/:id', EventManagementController.getEventById);
+router.get('/org/events/:id/partners', EventManagementController.getEventPartners);
+router.put('/org/events/:id', authMiddleware, EventManagementController.updateEvent);
+
+// corp routes
+router.get('/corp/events/:userID', EventManagementController.getCorpEvents);
+
+export { router as EventManagementRouter };
