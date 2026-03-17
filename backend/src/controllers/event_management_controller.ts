@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as EventRepo from "../repositories/event_repository";
+import * as EventRepo from "../repositories/prisma_event_repository";
 
 export const getAllEvents = async (req: Request, res: Response) => {
   try {
