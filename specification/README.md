@@ -49,7 +49,8 @@ Register a Corporation. **(Triggers Claim Logic)**
   "email": "marketing@google.com",
   "password": "securePassword123",
   "name": "Google",
-  "details": "A technology company specializing in..."
+  "details": "A technology company specializing in...",
+  "category": "Technology"
 }
 ```
 
