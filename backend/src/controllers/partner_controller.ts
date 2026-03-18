@@ -6,10 +6,10 @@ async function createPartner(req: Request, res: Response) {
     const { eventID, corporationID, packageID } = req.body;
 
     const newPartner = await PartnerRepo.createPartner({
-      event: eventID,
-      corporation: corporationID,
+      eventID: eventID,
+      corporationID: corporationID,
       status: "pending",
-      package: packageID,
+      packageID: packageID,
     });
 
     return res.status(201).json({
@@ -29,7 +29,7 @@ async function updatePartner(req: Request, res: Response){
     const { eventID, corporationID, packageID, status } = req.body;
 
     const updatedPartner = await PartnerRepo.updatePartner(eventID, corporationID, {
-      package: packageID,
+      packageID: packageID,
       status: status,
     });
 
