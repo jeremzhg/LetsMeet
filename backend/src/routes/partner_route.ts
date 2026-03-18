@@ -1,11 +1,13 @@
 import { Router } from "express";
-import { createPartner, updatePartner, getAllPartners, getPartnerDetails } from "../controllers/partner_controller";
+import { createPartner, updatePartner, getAllPartners, getPartnerDetails, getMyPartners } from "../controllers/partner_controller";
+import { authMiddleware } from "../middleware/auth_middleware";
 
 const router = Router();
 
 router.post("/", createPartner);
 router.put("/", updatePartner);
-router.get("/", getAllPartners);
-router.get("/:eventID/:corporationID", getPartnerDetails);
+router.get("/", authMiddleware, getMyPartners);
+router.get("/all/:eventID", getAllPartners);
+router.get("/details/:eventID", getPartnerDetails);
 
 export { router as PartnerRouter };

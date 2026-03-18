@@ -26,4 +26,16 @@ async function getPartnersByEventId(eventID: string): Promise<Partners[]>{
   });
 };
 
-export {createPartner, updatePartner, getPartnerById, getPartnersByEventId};
+async function getPartnersByCorporationId(corporationID: string): Promise<Partners[]>{
+  return await prisma.partners.findMany({
+    where: {corporationID},
+  });
+};
+
+async function getPartnersByOrganizationId(organizationID: string): Promise<Partners[]>{
+  return await prisma.partners.findMany({
+    where: { event: { organizationID } },
+  });
+};
+
+export {createPartner, updatePartner, getPartnerById, getPartnersByEventId, getPartnersByCorporationId, getPartnersByOrganizationId};

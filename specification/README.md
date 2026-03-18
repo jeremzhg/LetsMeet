@@ -254,27 +254,102 @@ Get the `pastEvents` list for a corporation (provides context on what they usual
 ### 4. Partnership Management
 
 #### `POST /partners`
-Initiate a partnership (Send Proposal).
-```json
-{
-  "eventID": "uuid-of-event",
-  "corporationID": "uuid-of-corp"
-  'status" : "pending" //default
-}
-```
-
-#### `PUT /partners/:id`
-Update the sponsorship status(manual, org only).
+Initiate a partnership (Send Proposal). Status defaults to `"pending"`.
 ```json
 {
   "eventID": "uuid-of-event",
   "corporationID": "uuid-of-corp",
-  "status": "accepted" or "rejected"  or "pending"
+  "packageID": "uuid-of-package" // optional
+}
+```
+**Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "eventID": "uuid",
+    "corporationID": "uuid",
+    "status": "pending",
+    "packageID": null
+  }
 }
 ```
 
-#### `GET /partners/requests`
-View pending partnership requests for the logged-in user.
+#### `PUT /partners`
+Update a partnership (status, package, etc.).
+```json
+{
+  "eventID": "uuid-of-event",
+  "corporationID": "uuid-of-corp",
+  "status": "accepted", // or "rejected" or "pending"
+  "packageID": "uuid-of-package" // optional
+}
+```
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "eventID": "uuid",
+    "corporationID": "uuid",
+    "status": "accepted",
+    "packageID": "uuid"
+  }
+}
+```
+#### `GET /partners`
+Retrieve all partners for a given corporation or organization.
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "eventID": "uuid",
+      "corporationID": "uuid",
+      "status": "pending",
+      "packageID": null
+    }
+  ]
+}
+```
+
+#### `GET /partners/all/:eventID`
+Retrieve all partners for a given event.
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "eventID": "uuid",
+      "corporationID": "uuid",
+      "status": "pending",
+      "packageID": null
+    }
+  ]
+}
+```
+
+#### `GET /partners/details/:eventID`
+Get details of a specific partnership.
+```json
+{
+  "corporationID": "uuid-of-corp"
+}
+```
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "eventID": "uuid",
+    "corporationID": "uuid",
+    "status": "pending",
+    "packageID": null
+  }
+}
+```
 
 ## Pages
 ### 1. Public Pages (Authentication & Landing)
