@@ -308,7 +308,20 @@ Retrieve all partners for a given corporation or organization.
       "eventID": "uuid",
       "corporationID": "uuid",
       "status": "pending",
-      "packageID": null
+      "packageID": null,
+      "event": {
+        "id": "uuid",
+        "title": "Annual Hackathon",
+        "date": "2026-10-10T09:00:00.000Z",
+        "country": "Indonesia",
+        "city": "Jakarta"
+      },
+      "corporation": {
+        "id": "uuid",
+        "name": "Tech Corp",
+        "email": "contact@techcorp.com",
+        "category": "Technology"
+      }
     }
   ]
 }
