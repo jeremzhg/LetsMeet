@@ -22,7 +22,7 @@ app.listen(port, () => {
 
 app.use("/auth", AuthRouter)
 app.use("/", EventManagementRouter)
-app.use("/partner", PartnerRouter)
+app.use("/partners", PartnerRouter)
 
 process.on("SIGINT", async () => {
   await disconnectDB();

@@ -45,4 +45,40 @@ async function updatePartner(req: Request, res: Response){
   }
 }
 
-export { createPartner, updatePartner };
+async function getAllPartners(req: Request, res: Response){
+  try {
+    const { eventID } = req.params;
+
+    const partners = await PartnerRepo.getPartnersByEventId(String(eventID));
+
+    return res.status(200).json({
+      success: true,
+      data: partners,
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return res.status(409).json({ error: error.message });
+    }
+    return res.status(500).json({ error: "internal server error" });
+  }
+}
+
+async function getPartnerDetails(req: Request, res: Response){
+  try {
+    const { eventID, corporationID } = req.params;
+
+    const partner = await PartnerRepo.getPartnerById(String(eventID), String(corporationID));
+
+    return res.status(200).json({
+      success: true,
+      data: partner,
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return res.status(409).json({ error: error.message });
+    }
+    return res.status(500).json({ error: "internal server error" });
+  }
+}
+
+export { createPartner, updatePartner, getAllPartners, getPartnerDetails };

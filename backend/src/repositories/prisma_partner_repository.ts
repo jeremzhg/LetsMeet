@@ -14,4 +14,16 @@ async function updatePartner(eventID: string, corporationID: string, data: Prism
   });
 };
 
-export {createPartner, updatePartner};
+async function getPartnerById(eventID: string, corporationID: string): Promise<Partners | null>{
+  return await prisma.partners.findUnique({
+    where: {eventID_corporationID: {eventID, corporationID}},
+  });
+};
+
+async function getPartnersByEventId(eventID: string): Promise<Partners[]>{
+  return await prisma.partners.findMany({
+    where: {eventID},
+  });
+};
+
+export {createPartner, updatePartner, getPartnerById, getPartnersByEventId};
