@@ -10,8 +10,8 @@ async function registerOrg(req: Request, res: Response){
       return res.status(400).json({error: "bad request"});
     }
 
-    const exist = OrgRepo.findOrgByEmail(email)
-    if(!exist){
+    const exist = await OrgRepo.findOrgByEmail(email)
+    if(exist){
       return res.status(409).json({error: "email already taken"})
     }
 

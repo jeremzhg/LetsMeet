@@ -3,6 +3,7 @@ import express from "express"
 import { connectDB, disconnectDB } from "./configs/db"
 import { AuthRouter } from "./routes/auth_route"
 import { EventManagementRouter } from "./routes/event_management_route"
+import { PartnerRouter } from "./routes/partner_route"
 import cookieParser from "cookie-parser"
 connectDB()
 
@@ -21,6 +22,7 @@ app.listen(port, () => {
 
 app.use("/auth", AuthRouter)
 app.use("/", EventManagementRouter)
+app.use("/partner", PartnerRouter)
 
 process.on("SIGINT", async () => {
   await disconnectDB();
