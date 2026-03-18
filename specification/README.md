@@ -85,37 +85,109 @@ no response body, just make sure to set withCredentials: true
 ### 2. Event Management 
 
 #### `GET /events`
-Retrieve all events
+Retrieve all events (public).  
+**Response:**
+```json
+{
+  "success": true,
+  "count": 2,
+  "data": [
+    {
+      "id": "uuid",
+      "title": "Annual Hackathon 2026",
+      "details": "A 24-hour hackathon...",
+      "date": "2026-10-10T09:00:00.000Z",
+      "country": "Indonesia",
+      "city": "Jakarta",
+      "expectedParticipants": 300,
+      "organizationID": "uuid",
+      "organization": { "name": "CS Society", "email": "cs@org.edu" },
+      "_count": { "partners": 3 }
+    }
+  ]
+}
+```
 
 #### `GET /org/events/:userID`
-Retrieve all events from a specific organization
+Retrieve all events from a specific organization.  
+**Response:**
+```json
+{
+  "success": true,
+  "count": 1,
+  "data": [ { "id": "uuid", "title": "...", "date": "...", "..." : "..." } ]
+}
+```
 
 #### `GET /corp/events/:userID`
-Retrieve all events that a specific corporation has done partnerships in any status.
+Retrieve all events that a specific corporation has partners in (all status).  
+**Response:**
+```json
+{
+  "success": true,
+  "count": 1,
+  "data": [
+    {
+      "id": "uuid",
+      "title": "Annual Hackathon 2026",
+      "organization": { "name": "CS Society", "email": "cs@org.edu" },
+      "partners": [{ "status": "accepted" }]
+    }
+  ]
+}
+```
 
 #### `POST /org/events`
-Create a new event.
+Create a new event. **(Auth required, org only)**
 ```json
 {
   "title": "Annual Hackathon 2026",
   "date": "2026-10-10T09:00:00Z",
-  "details": "A 24-hour hackathon focused on AI and sustainability..."
-  "status" : pending or in progress or completed
+  "details": "A 24-hour hackathon focused on AI and sustainability...",
+  "country": "Indonesia",
+  "city": "Jakarta",
+  "expectedParticipants": 300
 }
 ```
 
 #### `GET /org/events/:id`
-Get details of a specific event.
+Get details of a specific event (includes organization info).
 
 #### `GET /org/events/:id/partners`
-Retrieve the potential partners and their status for a specific event.
+Retrieve the partners and their status for a specific event.  
+**Response:**
+```json
+{
+  "success": true,
+  "count": 2,
+  "data": [
+    {
+      "eventID": "uuid",
+      "corporationID": "uuid",
+      "status": "pending",
+      "packageID": null,
+      "corporation": {
+        "id": "uuid",
+        "name": "Google",
+        "email": "marketing@google.com",
+        "details": "A technology company...",
+        "category": "Technology"
+      },
+      "package": null
+    }
+  ]
+}
+```
 
 #### `PUT /org/events/:id`
-Update an event.
+Update an event. **(Auth required, org only)**
 ```json
 {
   "title": "Annual Hackathon 2026 (Updated)",
-  "details": "Updated details regarding the venue..."
+  "details": "Updated details regarding the venue...",
+  "country": "Indonesia",
+  "city": "Bandung",
+  "expectedParticipants": 500
 }
 ```
 **When an event is completed, add corporations with partnership status of "accepted" to pastHistory table**

@@ -20,7 +20,7 @@ app.listen(port, () => {
 });
 
 app.use("/auth", AuthRouter)
-app.use("/org", EventManagementRouter)
+app.use("/", EventManagementRouter)
 
 process.on("SIGINT", async () => {
   await disconnectDB();
