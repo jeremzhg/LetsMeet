@@ -99,6 +99,7 @@ Retrieve all events (public).
       "date": "2026-10-10T09:00:00.000Z",
       "country": "Indonesia",
       "city": "Jakarta",
+      "status": "pending",
       "expectedParticipants": 300,
       "organizationID": "uuid",
       "organization": { "name": "CS Society", "email": "cs@org.edu" },
@@ -115,7 +116,7 @@ Retrieve all events from a specific organization.
 {
   "success": true,
   "count": 1,
-  "data": [ { "id": "uuid", "title": "...", "date": "...", "..." : "..." } ]
+  "data": [ { "id": "uuid", "title": "...", "date": "...", "status": "pending", "..." : "..." } ]
 }
 ```
 
@@ -130,6 +131,7 @@ Retrieve all events that a specific corporation has partners in (all status).
     {
       "id": "uuid",
       "title": "Annual Hackathon 2026",
+      "status": "pending",
       "organization": { "name": "CS Society", "email": "cs@org.edu" },
       "partners": [{ "status": "accepted" }]
     }
@@ -240,6 +242,9 @@ When an event is completed, its associated partners will automatically be treate
 ```
 #### `GET /corp/:id/history`
 Get the past events list for a corporation.
+* **Query Parameters:**
+  * `eventStatus` (optional): Filter the past events by event status (e.g., `?eventStatus=completed`, or `?eventStatus=ongoing`).
+  * `partnerStatus` (optional): Filter the past events by partnership status (e.g., `?partnerStatus=accepted`, or `?partnerStatus=rejected`).
 * **Response:**
 ```json
 [
@@ -247,7 +252,8 @@ Get the past events list for a corporation.
     "id": "uuid-9",
     "title": "Open Source Summit 2024",
     "date": "2024-05-12",
-    "details": "Contributing to open source projects....."
+    "details": "Contributing to open source projects.....",
+    "status": "completed"
   }
 ]
 ```
@@ -448,7 +454,9 @@ Get details of a specific partnership.
 * **UI Components:**
     * **History List:** Read-only list of past sponsorships (e.g., "Open Source Summit 2024").
 * **Key API Calls:**
-    * `GET /corp/:id/history`
+    * `GET /corp/:id/history?eventStatus=completed` // filter for fully completed events
+    * `GET /corp/:id/history?partnerStatus=accepted` // filter where the corp's partnership was accepted
+    * `GET /corp/:id/history?eventStatus=completed&partnerStatus=accepted` // filter by both
 
 ---
 
