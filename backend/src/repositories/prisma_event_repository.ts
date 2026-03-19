@@ -148,9 +148,11 @@ export async function getPastEventsForCorporation(corpID: string, status?: strin
     where: {
       date: { lt: new Date() },
       partners: {
-        some: { corporationID: corpID },
+        some: { 
+          corporationID: corpID,
+          ...(status && { status })
+        },
       },
-      ...(status && { status }),
     },
     include: {
       organization: {

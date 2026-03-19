@@ -172,3 +172,27 @@ export const getEventPartners = async (req: Request, res: Response) => {
     return res.status(500).json({ error: "internal server error" });
   }
 };
+
+export const getPastEventsForCorporation = async (req: Request, res: Response) => {
+  try {
+    const { corpID } = req.params;
+    const { status } = req.query;
+
+    if (!corpID) {
+      return res.status(400).json({ error: "Corporation ID is required" });
+    }
+
+    const events = await EventRepo.getPastEventsForCorporation(corpID as string, status as string);
+
+    return res.status(200).json({
+      success: true,
+      count: events.length,
+      data: events,
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return res.status(409).json({ error: error.message });
+    }
+    return res.status(500).json({ error: "internal server error" });
+  }
+};

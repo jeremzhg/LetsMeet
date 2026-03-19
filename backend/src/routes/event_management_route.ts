@@ -16,5 +16,5 @@ router.put('/org/events/:id', authMiddleware, EventManagementController.updateEv
 
 // corp routes
 router.get('/corp/events/:userID', EventManagementController.getCorpEvents);
-
+router.get('/corp/:corpID/history', EventManagementController.getPastEventsForCorporation);
 export { router as EventManagementRouter };
