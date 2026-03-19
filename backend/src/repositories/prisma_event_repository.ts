@@ -72,6 +72,7 @@ export async function updateEvent(
     country: string;
     city: string;
     expectedParticipants: number;
+    status: string;
   }>
 ): Promise<Events> {
   try {
@@ -142,13 +143,14 @@ export async function getPartnersByEventID(eventID: string) {
   });
 }
 
-export async function getPastEventsForCorporation(corpID: string): Promise<Events[]> {
+export async function getPastEventsForCorporation(corpID: string, status?: string): Promise<Events[]> {
   return await prisma.events.findMany({
     where: {
       date: { lt: new Date() },
       partners: {
         some: { corporationID: corpID },
       },
+      ...(status && { status }),
     },
     include: {
       organization: {
