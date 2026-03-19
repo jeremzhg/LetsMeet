@@ -131,6 +131,7 @@ export async function updateEvent(
 export async function getEventsByOrgID(orgID: string): Promise<Events[]> {
   return await prisma.events.findMany({
     where: { organizationID: orgID },
+    include: { packages: true },
     orderBy: { date: "desc" },
   });
 }
@@ -149,6 +150,7 @@ export async function getEventsByCorpID(corpID: string): Promise<Events[]> {
           email: true,
         },
       },
+      packages: true,
       partners: {
         where: { corporationID: corpID },
         select: { status: true },

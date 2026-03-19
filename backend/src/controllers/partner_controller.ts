@@ -66,9 +66,9 @@ async function getAllPartners(req: Request, res: Response){
 async function getPartnerDetails(req: Request, res: Response){
   try {
     const { eventID } = req.params;
-    const { corporationID } = req.body;
+    const { corporationID } = req.query;
 
-    const partner = await PartnerRepo.getPartnerById(String(eventID), corporationID);
+    const partner = await PartnerRepo.getPartnerById(String(eventID), String(corporationID));
 
     return res.status(200).json({
       success: true,

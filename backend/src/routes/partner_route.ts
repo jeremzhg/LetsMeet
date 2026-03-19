@@ -4,8 +4,8 @@ import { authMiddleware } from "../middleware/auth_middleware";
 
 const router = Router();
 
-router.post("/", createPartner);
-router.put("/", updatePartner);
+router.post("/", authMiddleware, createPartner);
+router.put("/", authMiddleware, updatePartner);
 router.get("/", authMiddleware, getMyPartners);
 router.get("/all/:eventID", getAllPartners);
 router.get("/details/:eventID", getPartnerDetails);

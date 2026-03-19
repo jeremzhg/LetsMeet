@@ -374,12 +374,8 @@ Retrieve all partners for a given event.
 
 #### `GET /partners/details/:eventID`
 Get details of a specific partnership.
-```json
-{
-  "corporationID": "uuid-of-corp"
-}
-```
-**Response (200):**
+* **Query Parameters:**
+  * `corporationID`: The UUID of the corporation.
 ```json
 {
   "success": true,
