@@ -141,3 +141,27 @@ export async function getPartnersByEventID(eventID: string) {
     },
   });
 }
+
+export async function getPastEventsForCorporation(corpID: string): Promise<Events[]> {
+  return await prisma.events.findMany({
+    where: {
+      date: { lt: new Date() },
+      partners: {
+        some: { corporationID: corpID },
+      },
+    },
+    include: {
+      organization: {
+        select: {
+          name: true,
+          email: true,
+        },
+      },
+      partners: {
+        where: { corporationID: corpID },
+        include: { package: true },
+      },
+    },
+    orderBy: { date: "desc" },
+  });
+}

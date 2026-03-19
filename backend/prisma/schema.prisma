@@ -30,7 +30,6 @@ model Corporation {
   details        String
   category       String
   isClaimed      Boolean    @default(false)
-  events         Events[]
   partners       Partners[]
   matchScores    MatchScore[]
 }
@@ -44,10 +43,8 @@ model Events {
   city                 String
   expectedParticipants Int
   organizationID       String
-  corporationID        String?
   status               String       @default("pending")
   organization         Organization @relation(fields: [organizationID], references: [id])
-  corporation         Corporation? @relation(fields: [corporationID], references: [id])
   partners             Partners[]
   matchScores          MatchScore[]
   packages             Package[]
