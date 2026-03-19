@@ -14,6 +14,7 @@ export async function getAllEvents(): Promise<Events[]> {
         _count: {
           select: { partners: true },
         },
+        packages: true,
       },
       orderBy: {
         date: "desc",
@@ -33,6 +34,7 @@ export async function createEvent(data: {
   city: string;
   expectedParticipants: number;
   organizationID: string;
+  packages?: { title: string; cost: number; details: string }[];
 }): Promise<Events> {
   return await prisma.events.create({
     data: {
@@ -45,6 +47,11 @@ export async function createEvent(data: {
       organization: {
         connect: { id: data.organizationID },
       },
+      ...(data.packages && data.packages.length > 0 && {
+        packages: {
+          create: data.packages,
+        },
+      }),
     },
   });
 }
@@ -59,6 +66,7 @@ export async function findEventById(id: string): Promise<Events | null> {
           email: true,
         },
       },
+      packages: true,
     },
   });
 }
@@ -73,6 +81,7 @@ export async function updateEvent(
     city: string;
     expectedParticipants: number;
     status: string;
+    packages: { id?: string; title: string; cost: number; details: string }[];
   }>
 ): Promise<Events> {
   try {
@@ -80,7 +89,31 @@ export async function updateEvent(
       where: { id },
       data: {
         ...data,
+        packages: undefined,
         ...(data.date && { date: new Date(data.date) }),
+        ...(data.packages && {
+          packages: {
+            deleteMany: {
+              id: {
+                notIn: data.packages.filter((p) => p.id).map((p) => p.id as string),
+              },
+            },
+            create: data.packages
+              .filter((p) => !p.id)
+              .map((p) => ({
+                title: p.title,
+                cost: p.cost,
+                details: p.details,
+              })),
+            upsert: data.packages
+              .filter((p) => p.id)
+              .map((p) => ({
+                where: { id: p.id as string },
+                update: { title: p.title, cost: p.cost, details: p.details },
+                create: { title: p.title, cost: p.cost, details: p.details },
+              })),
+          },
+        }),
       },
     });
   } catch (error) {
