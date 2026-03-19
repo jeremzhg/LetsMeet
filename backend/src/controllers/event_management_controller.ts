@@ -176,13 +176,17 @@ export const getEventPartners = async (req: Request, res: Response) => {
 export const getPastEventsForCorporation = async (req: Request, res: Response) => {
   try {
     const { corpID } = req.params;
-    const { status } = req.query;
+    const { eventStatus, partnerStatus } = req.query;
 
     if (!corpID) {
       return res.status(400).json({ error: "Corporation ID is required" });
     }
 
-    const events = await EventRepo.getPastEventsForCorporation(corpID as string, status as string);
+    const events = await EventRepo.getPastEventsForCorporation(
+      corpID as string, 
+      eventStatus as string, 
+      partnerStatus as string
+    );
 
     return res.status(200).json({
       success: true,
