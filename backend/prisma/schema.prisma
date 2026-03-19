@@ -30,18 +30,9 @@ model Corporation {
   details        String
   category       String
   isClaimed      Boolean    @default(false)
-  pastEvents     PastEvents[]
+  events         Events[]
   partners       Partners[]
   matchScores    MatchScore[]
-}
-
-model PastEvents {
-  id             String     @id @default(uuid())
-  name           String
-  details        String
-  date           DateTime
-  corporationID  String
-  corporation Corporation @relation(fields: [corporationID], references: [id])
 }
 
 model Events {
@@ -53,7 +44,10 @@ model Events {
   city                 String
   expectedParticipants Int
   organizationID       String
+  corporationID        String?
+  status               String       @default("pending")
   organization         Organization @relation(fields: [organizationID], references: [id])
+  corporation         Corporation? @relation(fields: [corporationID], references: [id])
   partners             Partners[]
   matchScores          MatchScore[]
   packages             Package[]
