@@ -29,14 +29,38 @@ async function getPartnersByEventId(eventID: string): Promise<Partners[]>{
 async function getPartnersByCorporationId(corporationID: string) {
   return await prisma.partners.findMany({
     where: {corporationID},
-    include: { event: true, corporation: true },
+    include: {
+      event: true,
+      corporation: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          details: true,
+          category: true,
+          isClaimed: true,
+        },
+      },
+    },
   });
 };
 
 async function getPartnersByOrganizationId(organizationID: string) {
   return await prisma.partners.findMany({
     where: { event: { organizationID } },
-    include: { event: true, corporation: true },
+    include: {
+      event: true,
+      corporation: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          details: true,
+          category: true,
+          isClaimed: true,
+        },
+      },
+    },
   });
 };
 
