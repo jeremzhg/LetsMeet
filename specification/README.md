@@ -149,7 +149,15 @@ Create a new event. **(Auth required, org only)**
   "country": "Indonesia",
   "city": "Jakarta",
   "status": "pending",
-  "expectedParticipants": 300
+  "expectedParticipants": 300,
+  "packages": [
+    { "title": "Gold Sponsorship", 
+      "cost": 5000, 
+      "details": "Logo on banner, booth, etc." },
+    { "title": "Silver Sponsorship", 
+      "cost": 2000, 
+      "details": "Logo on website" }
+  ]
 }
 ```
 
@@ -191,7 +199,18 @@ Update an event. **(Auth required, org only)**
   "country": "Indonesia",
   "city": "Bandung",
   "expectedParticipants": 500,
-  "status": "completed"
+  "status": "completed",
+  "packages": [
+    { 
+      "id": "package-uuid",
+      "title": "Gold Sponsorship",
+      "cost": 6000,
+      "details": "Speaker slot, 20 second ad-libs, logo on banner, booth, etc." },
+    { 
+      "title": "Bronze Sponsorship",
+      "cost": 500,
+      "details": "20 second ad-libs" }
+  ]
 }
 ```
 When an event is completed, its associated partners will automatically be treated as past event history.
@@ -412,6 +431,7 @@ Get details of a specific partnership.
 * **Purpose:** Form to input event details.
 * **UI Components:**
     * **Rich Text Editor:** For `details` (Crucial for the AI to work well—encourage users to be descriptive).
+    * **Dynamic Packages Section:** Ability to add, edit, or remove sponsorship packages (Title, Cost, and Details) directly in the form.
     * **Save Button:** "Save & Find Matches" (Triggers the async matching).
 * **Key API Calls:**
     * `POST /org/events` or `PUT /org/events/:id`
@@ -444,10 +464,11 @@ Get details of a specific partnership.
 * **Purpose:** View current events that are actively seeking partnerships.
 * **UI Components:**
     * **Event Cards:** Shows Event Name, Organization Name, Event Details, and the AI Fit Score for the logged-in corporation.
-    * **Action Button:** "Apply for Partnership".
+    * **Package Details:** A view showing the available sponsorship packages for the event along with their costs and details.
+    * **Action Button:** "Apply for Partnership" (Prompting the corporation to select an available `packageID` to apply for).
 * **Key API Calls:**
     * `GET /events`
-    * `POST /partners`
+    * `POST /partners` (submitting with the chosen `packageID`)
 #### **Page: Corporate Profile & History**
 * **Route:** `/corp/profile`
 * **Purpose:** View/Edit company details and see the past event history that the AI is using for context.
