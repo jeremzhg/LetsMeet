@@ -146,6 +146,7 @@ Create a new event. **(Auth required, org only)**
   "details": "A 24-hour hackathon focused on AI and sustainability...",
   "country": "Indonesia",
   "city": "Jakarta",
+  "status": "pending",
   "expectedParticipants": 300
 }
 ```
@@ -187,7 +188,8 @@ Update an event. **(Auth required, org only)**
   "details": "Updated details regarding the venue...",
   "country": "Indonesia",
   "city": "Bandung",
-  "expectedParticipants": 500
+  "expectedParticipants": 500,
+  "status": "completed"
 }
 ```
 When an event is completed, its associated partners will automatically be treated as past event history.
@@ -237,7 +239,7 @@ When an event is completed, its associated partners will automatically be treate
 ]
 ```
 #### `GET /corp/:id/history`
-Get the past events list for a corporation (queries concluded events directly through the `Partners` table to provide context on what they usually sponsor).
+Get the past events list for a corporation.
 * **Response:**
 ```json
 [
