@@ -20,7 +20,7 @@ export const getAllEvents = async (req: Request, res: Response) => {
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
-    const { title, date, details, country, city, expectedParticipants } = req.body;
+    const { title, date, details, country, city, expectedParticipants, packages } = req.body;
 
     const organizationID = (req as any).user.id;
     const role = (req as any).user.role;
@@ -44,6 +44,7 @@ export const createEvent = async (req: Request, res: Response) => {
       city,
       expectedParticipants: Number(expectedParticipants),
       organizationID,
+      packages,
     });
 
     return res.status(201).json({
@@ -87,9 +88,18 @@ export const getEventById = async (req: Request, res: Response) => {
 export const updateEvent = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const { title, date, details, country, city, expectedParticipants, status, packages } = req.body;
 
-    const updatedEvent = await EventRepo.updateEvent(id as string, updateData);
+    const updatedEvent = await EventRepo.updateEvent(id as string, {
+      title,
+      date,
+      details,
+      country,
+      city,
+      expectedParticipants: expectedParticipants ? Number(expectedParticipants) : undefined,
+      status,
+      packages,
+    });
 
     return res.status(200).json({
       success: true,
