@@ -9,11 +9,10 @@
 Scrapes potential partner(preset database for this project, allowed by lecturer), then do matching based on fit score. Organizations could see scraped partners who are potentially fit determined by a LLM, and corporations can go to events who are currently seeking partnerships also given a fit score. Fit score is determined by comparing event and organization details to corporation details and vice versa. 
 
 ## ERD
-![](./LetsMeet_ERD_2.png)
+![](./LetsMeet_ERD.png)
 #### Non self explanatory stuff:  
 - MatchScore and Partners are divided because the partners table would store a score for partnerships that havent been formed if the score was put there.
 - isClaimed on corporation is incase a "scraped" corporation signs up to the website
-- pastEvents is to be used as additional context for fit score
 
 ## API
 ### 1. Authentication & Onboarding
@@ -191,7 +190,8 @@ Update an event. **(Auth required, org only)**
   "expectedParticipants": 500
 }
 ```
-**When an event is completed, add corporations with partnership status of "accepted" to pastHistory table**
+When an event is completed, its associated partners will automatically be treated as past event history.
+
 ---
 
 ### 3. AI Discovery & Matching
@@ -237,12 +237,12 @@ Update an event. **(Auth required, org only)**
 ]
 ```
 #### `GET /corp/:id/history`
-Get the `pastEvents` list for a corporation (provides context on what they usually sponsor).
+Get the past events list for a corporation (queries concluded events directly through the `Partners` table to provide context on what they usually sponsor).
 * **Response:**
 ```json
 [
   {
-    "pastEventID": "uuid-9",
+    "id": "uuid-9",
     "title": "Open Source Summit 2024",
     "date": "2024-05-12",
     "details": "Contributing to open source projects....."
@@ -442,7 +442,7 @@ Get details of a specific partnership.
     * `POST /partners`
 #### **Page: Corporate Profile & History**
 * **Route:** `/corp/profile`
-* **Purpose:** View/Edit company details and see the scraped `pastEvents` history that the AI is using for context.
+* **Purpose:** View/Edit company details and see the past event history that the AI is using for context.
 * **UI Components:**
     * **History List:** Read-only list of past sponsorships (e.g., "Open Source Summit 2024").
 * **Key API Calls:**
