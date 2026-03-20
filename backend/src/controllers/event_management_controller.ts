@@ -67,7 +67,7 @@ export const getEventById = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Event ID is required" });
     }
 
-    const event = await EventRepo.findEventById(id as string);
+    const event = await EventRepo.findEventById(String(id));
 
     if (!event) {
       return res.status(404).json({ error: "Event not found" });

@@ -6,12 +6,17 @@ import { EventManagementRouter } from "./routes/event_management_route"
 import { PartnerRouter } from "./routes/partner_route"
 import { MatchingRouter } from "./routes/matching_route"
 import cookieParser from "cookie-parser"
+import swaggerUi from "swagger-ui-express"
+import swaggerDocument from "./swagger.json"
+
 connectDB()
 
 const app = express()
 app.use(express.json())
 app.use(cookieParser())
 const port = 3000;
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.get("/", (req, res) => {
   res.send("hello world");
