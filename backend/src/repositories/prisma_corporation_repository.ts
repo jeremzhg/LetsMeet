@@ -38,4 +38,39 @@ async function claimCorp(
   });
 };
 
-export {findCorpByEmail, findCorpById, claimCorp, createCorp }
+async function getAllCorpsWithPastEvents() {
+  return await prisma.corporation.findMany({
+    include: {
+      partners: {
+        where: {
+          event: {
+            status: "completed"
+          }
+        },
+        include: {
+          event: true
+        }
+      }
+    }
+  });
+}
+
+async function getCorpWithPastEventsById(id: string) {
+  return await prisma.corporation.findUnique({
+    where: { id },
+    include: {
+      partners: {
+        where: {
+          event: {
+            status: "completed"
+          }
+        },
+        include: {
+          event: true
+        }
+      }
+    }
+  });
+}
+
+export {findCorpByEmail, findCorpById, claimCorp, createCorp, getAllCorpsWithPastEvents, getCorpWithPastEventsById}

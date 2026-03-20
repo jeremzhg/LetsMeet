@@ -1,5 +1,9 @@
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
 import dotenv from "dotenv";
+import { findEventById } from "../repositories/prisma_event_repository";
+import { getAllCorpsWithPastEvents, getCorpWithPastEventsById } from "../repositories/prisma_corporation_repository";
+import { upsertMatchScore } from "../repositories/prisma_matchscore_repository";
+
 dotenv.config();
 
 const MODEL_NAME = "gemini-2.5-flash"; 
@@ -11,36 +15,11 @@ if (!API_KEY) {
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-async function matchingService() {
-  // TODO: real implementation once made, change this to fetch from db
-
-  /*
-  const event = await prisma.events.findUnique({ where: { eventID: '123' } });
-  const corporations = await prisma.corporation.findMany({ include: { pastEvents: true } });
-  */
-
-  //mock data
-  const event = {
-    title: "BINUS AI Hackathon 2026",
-    details: "A 48-hour coding competition focused on Generative AI and sustainability solutions. Seeking technical mentors and API sponsors. Estimated attendance: 300 students.",
-    date: "2026-10-10"
-  };
-
-  const corporations = [
-    {
-      id: "corp_1",
-      name: "Sigma Cloud",
-      details: "Leading provider of cloud infrastructure and AI APIs for BINUS Students.",
-      pastEvents: ["HackMIT 2024", "Global Game Jam"]
-    },
-    {
-      id: "corp_2",
-      name: "Geprek Binus",
-      details: "Geprek Binus is a restaurant that sells geprek chicken. It is located in binus university",
-      pastEvents: []
-    }
-  ];
-
+async function matchingService(eventID: string, corporationID?: string) {
+  const event = await findEventById(eventID);
+  if (!event) {
+    throw new Error("Event not found");
+  }
 
   const model = genAI.getGenerativeModel({
     model: MODEL_NAME,
@@ -56,14 +35,23 @@ async function matchingService() {
     },
   });
 
+  let targetCorporations = [];
+  if (corporationID) {
+    const corp = await getCorpWithPastEventsById(corporationID);
+    if (corp) targetCorporations.push(corp);
+  } else {
+    targetCorporations = await getAllCorpsWithPastEvents();
+  }
 
-  for (const corp of corporations) {
+  for (const corp of targetCorporations) {
     console.log(`\nAnalyzing fit for: ${corp.name}...`);
 
+    const pastEvents = corp.partners.map((p: any) => p.event.title);
+
     const prompt = `
-      You are a Partnership Matching AI, an expert at evaluating brand-event synergy.
+      You are a Partnership Matching Professional with 30 years of experience, an expert at evaluating brand-event synergy.
       Your goal is to determine if a Corporation is a strategic sponsor for an Event based on 
-      audience alignment, industry relevance, and historical activity.
+      audience alignment, industry relevance, and historical activity. No sugarcoating, be as direct as possible.
       Analyze the following details:
 
       EVENT:
@@ -73,7 +61,7 @@ async function matchingService() {
       CORPORATION:
       Name: ${corp.name}
       About: ${corp.details}
-      Past Sponsorships: ${corp.pastEvents.join(", ")}
+      Past Sponsorships: ${pastEvents.length > 0 ? pastEvents.join(", ") : "None"}
 
       Analysis Guidelines:
       1. Industry Fit: Does the event category align with the corporation's core business?
@@ -90,15 +78,9 @@ async function matchingService() {
       const response = result.response;
       const jsonText = response.text();
       const data = JSON.parse(jsonText);
-      console.log(data)
+      console.log(`Score: ${data.score}, Reasoning: ${data.reasoning}`);
 
-      /*
-      await prisma.matchScore.upsert({
-        where: { eventID_corporationID: { eventID: event.id, corporationID: corp.id }},
-        update: { score: data.score, aiReasoning: data.reasoning },
-        create: { ... }
-      });
-      */
+      await upsertMatchScore(event.id, corp.id, data.score, data.reasoning);
 
     } catch (error) {
       console.error(`Error(${corp.name}):`, error);
@@ -106,5 +88,4 @@ async function matchingService() {
   }
 }
 
-// export const 
-matchingService();
+export {matchingService};
