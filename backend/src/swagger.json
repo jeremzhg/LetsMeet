@@ -137,7 +137,7 @@
         }
       }
     },
-    "/org/events/{userID}": {
+    "/org/{userID}/events": {
       "get": {
         "tags": ["Event Management"],
         "summary": "Retrieve all events from a specific organization",
@@ -149,7 +149,7 @@
         }
       }
     },
-    "/corp/events/{userID}": {
+    "/corp/{userID}/events": {
       "get": {
         "tags": ["Event Management"],
         "summary": "Retrieve all events that a specific corporation has partners in",
@@ -230,7 +230,18 @@
                   "city": { "type": "string" },
                   "expectedParticipants": { "type": "number" },
                   "status": { "type": "string" },
-                  "packages": { "type": "array", "items": { "type": "object" } }
+                  "packages": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "title": { "type": "string" },
+                        "cost": { "type": "number" },
+                        "details": { "type": "string" }
+                      }
+                    }
+                  }
                 }
               }
             }

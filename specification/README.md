@@ -109,7 +109,7 @@ Retrieve all events (public).
 }
 ```
 
-#### `GET /org/events/:userID`
+#### `GET /org/:userID/events`
 Retrieve all events from a specific organization.  
 **Response:**
 ```json
@@ -120,7 +120,7 @@ Retrieve all events from a specific organization.
 }
 ```
 
-#### `GET /corp/events/:userID`
+#### `GET /corp/:userID/events`
 Retrieve all events that a specific corporation has partners in (all status).  
 **Response:**
 ```json
@@ -434,7 +434,7 @@ Get details of a specific partnership.
     * **"Create New Event" Button:** Prominent floating action button or header button.
     * **Event Cards List:** Displays brief details (Title, Date, Status).
 * **Key API Calls:**
-    * `GET /org/events/:userID` (Load list)
+    * `GET /org/:userID/events` (Load list)
 
 #### **Page: Create / Edit Event**
 * **Route:** `/org/events/new` or `/org/events/:id/edit`
