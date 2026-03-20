@@ -1,7 +1,7 @@
 import { MatchScore } from "../generated/prisma/client";
 import { prisma } from "../configs/db";
 
-export async function upsertMatchScore(
+async function upsertMatchScore(
   eventID: string,
   corporationID: string,
   score: number,
@@ -26,3 +26,21 @@ export async function upsertMatchScore(
     },
   });
 }
+
+async function getMatchScoreByEventID(eventID: string) {
+  return await prisma.matchScore.findMany({
+    where: { eventID },
+    include: {
+      corporation: {
+        select: {
+          name: true,
+        },
+      },
+    },
+    orderBy: {
+      score: "desc",
+    },
+  });
+}
+
+export { upsertMatchScore, getMatchScoreByEventID };

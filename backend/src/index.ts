@@ -4,6 +4,7 @@ import { connectDB, disconnectDB } from "./configs/db"
 import { AuthRouter } from "./routes/auth_route"
 import { EventManagementRouter } from "./routes/event_management_route"
 import { PartnerRouter } from "./routes/partner_route"
+import { MatchingRouter } from "./routes/matching_route"
 import cookieParser from "cookie-parser"
 connectDB()
 
@@ -23,6 +24,7 @@ app.listen(port, () => {
 app.use("/auth", AuthRouter)
 app.use("/", EventManagementRouter)
 app.use("/partners", PartnerRouter)
+app.use("/matches", MatchingRouter)
 
 process.on("SIGINT", async () => {
   await disconnectDB();
