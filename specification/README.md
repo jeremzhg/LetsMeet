@@ -220,25 +220,39 @@ When an event is completed, its associated partners will automatically be treate
 ### 3. AI Discovery & Matching
 **Note:** All lists returned here must be **sorted by `score` DESC**.
 
-#### `GET /events/:id/matches`
-**(For Org)** Get a ranked list of Corporations that fit a specific event.
+#### `GET /matches/:eventID`
+Get a ranked list of Corporations that fit a specific event. Fetches existing scores if available, otherwise calculates them via AI.
 * **Response:**
 ```json
-[
-  {
-    "corporationID": "uuid-1",
-    "name": "Tech Corp",
-    "score": 98.5,
-    "aiReasoning": "Tech Corp has a history of sponsoring hackathons..."
-  },
-  {
-    "corporationID": "uuid-2",
-    "name": "Bank of Scraped Data",
-    "score": 85.0,
-    "aiReasoning": "Financial institutions often look for..."
-  }
-]
+{
+  "success": true,
+  "count": 2,
+  "data": [
+    {
+      "eventID": "uuid-event",
+      "corporationID": "uuid-1",
+      "score": 98.5,
+      "reasoning": "Tech Corp has a history of sponsoring hackathons...",
+      "corporation": {
+        "name": "Tech Corp"
+      }
+    },
+    {
+      "eventID": "uuid-event",
+      "corporationID": "uuid-2",
+      "score": 85.0,
+      "reasoning": "Financial institutions often look for...",
+      "corporation": {
+        "name": "Bank of Scraped Data"
+      }
+    }
+  ]
+}
 ```
+
+#### `PUT /matches/:eventID`
+**(For Org)** Force update matches for an event. Explicitly recalculates match scores using AI and overwrites existing records in the database.
+* **Response:** Same format as `GET /matches/:eventID` but includes a `"message": "Match scores successfully updated."`.
 
 #### `GET /corp/:id/matches`
 **(For Corp)** Get a ranked list of Events that fit a specific event.
@@ -441,12 +455,14 @@ Get details of a specific partnership.
         * **The Match Table (Sorted by Score):**
             * **Columns:** Company Name, Fit Score (displayed as a Green/Yellow/Red badge), AI Reasoning (Tooltip or expandable row).
         * **Action:** "Status" button for each row.
+        * **Action:** "Force Update Matches" button at the top to refresh scores using AI.
     * **Tab 2: Inbox & Pipeline (Management):**
         * **Kanban or List View:** Shows all active partnerships for this event, grouped by Status (e.g., `Applied` [from corps], `Contacted` [by org], `Accepted`, `Rejected`).
         * **Action:** Dropdowns to manually update the status of any partnership.
 * **Key API Calls:**
     * `GET /org/events/:id`
-    * `GET /events/:id/matches`
+    * `GET /matches/:eventID` (To load the matches dynamically)
+    * `PUT /matches/:eventID` (To force refresh the matches)
     * `GET /events/:id/partners`
     * `POST /partners`
     * `PUT /partners/:id`
