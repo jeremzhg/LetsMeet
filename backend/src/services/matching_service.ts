@@ -26,10 +26,15 @@ async function matchingService(eventID: string, corporationID?: string) {
     generationConfig: {
       responseMimeType: "application/json",
       responseSchema: {
-        type: SchemaType.OBJECT,
-        properties: {
-          score: { type: SchemaType.NUMBER, description: "Compatibility score 0-100" },
-          reasoning: { type: SchemaType.STRING, description: "Short explanation for the score. Maximum of 10 words" },
+        type: SchemaType.ARRAY,
+        description: "Array of evaluations for the provided corporations",
+        items: {
+          type: SchemaType.OBJECT,
+          properties: {
+            corporationID: { type: SchemaType.STRING, description: "The ID of the evaluated corporation" },
+            score: { type: SchemaType.NUMBER, description: "Compatibility score 0-100" },
+            reasoning: { type: SchemaType.STRING, description: "Short explanation for the score. Maximum of 10 words" },
+          },
         },
       },
     },
@@ -43,10 +48,20 @@ async function matchingService(eventID: string, corporationID?: string) {
     targetCorporations = await getAllCorpsWithPastEvents();
   }
 
-  for (const corp of targetCorporations) {
-    console.log(`\nAnalyzing fit for: ${corp.name}...`);
+  const chunkSize = 10;
+  for (let i = 0; i < targetCorporations.length; i += chunkSize) {
+    const chunk = targetCorporations.slice(i, i + chunkSize);
+    console.log(`\nAnalyzing fit for chunk ${i / chunkSize + 1} (${chunk.length} corporations)...`);
 
-    const pastEvents = corp.partners.map((p: any) => p.event.title);
+    const corporationsText = chunk.map((corp: any) => {
+      const pastEvents = corp.partners?.map((p: any) => p.event?.title) || [];
+      return `
+      ID: ${corp.id}
+      Name: ${corp.name}
+      About: ${corp.details}
+      Past Sponsorships: ${pastEvents.length > 0 ? pastEvents.join(", ") : "None"}
+      `;
+    }).join("\n---");
 
     const prompt = `
       You are a Partnership Matching Professional with 30 years of experience, an expert at evaluating brand-event synergy.
@@ -58,32 +73,35 @@ async function matchingService(eventID: string, corporationID?: string) {
       Title: ${event.title}
       Description: ${event.details}
 
-      CORPORATION:
-      Name: ${corp.name}
-      About: ${corp.details}
-      Past Sponsorships: ${pastEvents.length > 0 ? pastEvents.join(", ") : "None"}
+      CORPORATIONS TO EVALUATE:
+      ${corporationsText}
 
       Analysis Guidelines:
       1. Industry Fit: Does the event category align with the corporation's core business?
       2. Audience Overlap: Do the event details suggest an audience that matches the corporation's likely target market?
       3. Historical Precedent: Is this event similar to specific past sponsorships listed?
+      
       Task:
+      - Evaluate each corporation provided.
       - Assign a fit score (0-100). High score = specific industry alignment.
       - Low score = generic or irrelevant alignment.
       - Provide a 1-sentence reasoning. Maximum of 10 words.
+      - Return an evaluation for every corporation provided with its corresponding corporationID.
     `;
 
     try {
       const result = await model.generateContent(prompt);
       const response = result.response;
       const jsonText = response.text();
-      const data = JSON.parse(jsonText);
-      console.log(`Score: ${data.score}, Reasoning: ${data.reasoning}`);
+      const evaluations = JSON.parse(jsonText);
 
-      await upsertMatchScore(event.id, corp.id, data.score, data.reasoning);
-
+      for (const evalResult of evaluations) {
+        if (!evalResult.corporationID) continue;
+        console.log(`Corp ${evalResult.corporationID} - Score: ${evalResult.score}, Reasoning: ${evalResult.reasoning}`);
+        await upsertMatchScore(event.id, evalResult.corporationID, evalResult.score, evalResult.reasoning);
+      }
     } catch (error) {
-      console.error(`Error(${corp.name}):`, error);
+      console.error(`Error processing chunk ${i / chunkSize + 1}:`, error);
     }
   }
 }
