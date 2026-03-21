@@ -13,7 +13,6 @@ COPY . .
 RUN npx prisma generate
 RUN npm run build
 RUN npm prune --omit=dev
-RUN npx prisma db seed
 
 FROM base AS runner
 WORKDIR /app
@@ -27,4 +26,4 @@ COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
 EXPOSE 3000
 
-CMD ["/bin/sh", "-c", "npx prisma migrate deploy && node dist/src/index.js"]
+CMD ["/bin/sh", "-c", "npx prisma migrate deploy && node dist/prisma/seed.js && node dist/src/index.js"]
