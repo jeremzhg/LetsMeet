@@ -1,13 +1,11 @@
 import { Link } from "react-router-dom";
-import LoginBg from "../assets/images/login-bg.png";
 
 export const LoginPage = () => {
   return (
     <div className="flex w-full min-h-screen">
       <div className="hidden lg:flex w-1/2 relative">
         <div
-          className="flex items-center justify-center h-screen w-full bg-center bg-cover"
-          style={{ backgroundImage: `url(${LoginBg})` }}
+          className="flex items-center justify-center h-screen w-full bg-center bg-cover bg-login-image"
         >
           <div className="">
             <h2 className="text-white font-roboto font-bold">

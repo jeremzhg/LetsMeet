@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 @font-face {
   font-family: "Roboto";
   src: url("./assets/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf")
@@ -18,4 +20,6 @@
   --font-roboto: "Roboto", sans-serif;
 }
 
-@import "tailwindcss";
+.bg-login-image {
+  background-image: url("./assets/images/login-bg.png");
+}
