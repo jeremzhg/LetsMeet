@@ -21,7 +21,7 @@ const Navbar = ({ onHeightChange, variant = "guest" }: NavbarProps) => {
   return (
     <nav
       ref={navRef}
-      className="sticky top-0 z-50 w-full bg-white shadow-sm transition-all duration-300"
+      className="sticky top-0 z-50 w-full bg-white shadow-sm transition-all duration-300 font-sans"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
         <div className="flex-shrink-0 flex items-center">
