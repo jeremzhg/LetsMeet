@@ -1,130 +1,96 @@
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import emailLogo from "../assets/images/email-logo.png";
+import passwordLogo from "../assets/images/password-logo.png";
+import { InputField } from "../components/fields/InputField";
+import { HeroSection } from "../components/sections/AuthSection";
+import { AuthButton } from "../components/buttons/AuthButton";
 
 export const LoginPage = () => {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      // Memanggil API login dari folder backend (Asumsi di port 3000)
+      const response = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Berhasil login:", data);
+        // opsional: localStorage.setItem("token", data.token);
+        navigate("/home");
+      } else {
+        alert(data.message || "Gagal login. Periksa kembali data Anda.");
+      }
+    } catch (error) {
+      console.error("Kesalahan jaringan:", error);
+      alert("Tidak dapat terhubung ke server backend (Pastikan backend sudah nyala).");
+    }
+  };
+
   return (
-    <div className="flex w-full min-h-screen">
-      <div className="hidden lg:flex w-1/2 relative">
-        <div className="flex items-center justify-center h-screen w-full bg-center bg-cover bg-login-image">
-          <div className="">
-            <h2 className="text-white font-roboto font-bold text-5xl">
-              Login into your account
-            </h2>
-            <p className="text-[#FFFFFF]/50 font-roboto text-xl">
-              Welcome back! Pick up where you left off.
-            </p>
-          </div>
-        </div>
-      </div>
+    <div className="font-roboto flex min-h-screen w-full text-gray-800">
+      <HeroSection />
 
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 xl:p-24 bg-[#E6F6FF] relative z-20">
-        <div className="w-full max-w-md">
-          <div className="text-center sm:text-left">
-            <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
-              Sign in to your account
-            </h1>
-            <p className="text-gray-400 font-medium text-sm">
-              Don't have an account?{" "}
-              <Link
-                to="/register"
-                className="text-emerald-400 hover:text-emerald-300 hover:underline transition-all font-semibold"
-              >
-                Sign up today
-              </Link>
-            </p>
-          </div>
+      <div className="flex w-full flex-col items-center justify-center bg-[#E6F6FF] p-8 sm:p-12 lg:w-1/2 xl:p-24">
+        <form
+          onSubmit={handleLogin}
+          className="flex w-full max-w-md flex-col rounded-3xl border border-gray-100 bg-white p-8 drop-shadow-sm sm:p-10"
+        >
+          <InputField
+            label="Email"
+            type="email"
+            placeholder="Enter your email"
+            iconSrc={emailLogo}
+            iconAlt="Email icon"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
-          {/* Form */}
-          <form className="mt-8 space-y-6" onSubmit={(e) => e.preventDefault()}>
-            <div className="space-y-5">
-              <div>
-                <label
-                  className="block text-sm font-medium text-gray-300 mb-1.5"
-                  htmlFor="email"
-                >
-                  Email Address
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder-gray-500 shadow-inner"
-                  placeholder="you@example.com"
-                />
-              </div>
+          <InputField
+            label="Password"
+            type="password"
+            placeholder="Enter your password"
+            iconSrc={passwordLogo}
+            iconAlt="Password icon"
+            containerClassName="mb-3"
+            inputClassName="py-2.5"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
-              <div>
-                <label
-                  className="block text-sm font-medium text-gray-300 mb-1.5"
-                  htmlFor="password"
-                >
-                  Password
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  required
-                  className="w-full px-4 py-3 bg-gray-800/50 border border-gray-700 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all placeholder-gray-500 shadow-inner"
-                  placeholder="••••••••"
-                />
-              </div>
-            </div>
+          <Link
+            to={""}
+            className="mb-8 self-end text-sm font-medium text-blue-600 transition-colors hover:text-blue-700"
+          >
+            Forgot your password?
+          </Link>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 bg-gray-800 border-gray-700 rounded text-emerald-500 focus:ring-emerald-500/50 cursor-pointer transition-colors"
-                />
-                <label
-                  htmlFor="remember-me"
-                  className="block text-sm text-gray-400 cursor-pointer select-none hover:text-gray-300 transition-colors"
-                >
-                  Remember me
-                </label>
-              </div>
+          <AuthButton type="submit" text="Login" />
 
-              <div className="text-sm">
-                <a
-                  href="#"
-                  className="font-semibold text-emerald-400 hover:text-emerald-300 transition-colors"
-                >
-                  Forgot password?
-                </a>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-lg shadow-emerald-500/20 text-sm font-extrabold text-gray-950 bg-emerald-400 hover:bg-emerald-300 focus:outline-none focus:ring-4 focus:ring-emerald-500/50 transition-all cursor-pointer transform hover:-translate-y-0.5"
+          <div className="mt-auto flex items-center justify-center gap-1.5 text-sm">
+            <p className="text-gray-500">Don't have an account?</p>
+            <Link
+              to={""}
+              className="font-semibold text-blue-600 transition-colors hover:text-blue-700"
             >
-              Sign in
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="mt-8 relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-800" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-gray-900 text-gray-500 font-medium">
-                Or continue with
-              </span>
-            </div>
+              Sign up
+            </Link>
           </div>
-
-          {/* Social login */}
-          <div className="mt-6 flex gap-4">
-            <button className="w-full flex justify-center px-4 py-2.5 border border-gray-700 rounded-xl shadow-sm bg-gray-800/50 text-sm font-semibold text-gray-300 hover:bg-gray-700 hover:text-white transition-all cursor-pointer">
-              Google
-            </button>
-            <button className="w-full flex justify-center px-4 py-2.5 border border-gray-700 rounded-xl shadow-sm bg-gray-800/50 text-sm font-semibold text-gray-300 hover:bg-gray-700 hover:text-white transition-all cursor-pointer">
-              GitHub
-            </button>
-          </div>
-        </div>
+        </form>
       </div>
     </div>
   );
