@@ -4,24 +4,20 @@ export const LoginPage = () => {
   return (
     <div className="flex w-full min-h-screen">
       <div className="hidden lg:flex w-1/2 relative">
-        <div
-          className="flex items-center justify-center h-screen w-full bg-center bg-cover bg-login-image"
-        >
+        <div className="flex items-center justify-center h-screen w-full bg-center bg-cover bg-login-image">
           <div className="">
-            <h2 className="text-white font-roboto font-bold">
+            <h2 className="text-white font-roboto font-bold text-5xl">
               Login into your account
             </h2>
-            <p className="text-[#FFFFFF]/50">
+            <p className="text-[#FFFFFF]/50 font-roboto text-xl">
               Welcome back! Pick up where you left off.
             </p>
           </div>
         </div>
       </div>
 
-      {/* Right Form Section */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 xl:p-24 bg-gray-900 shadow-2xl relative z-20">
-        <div className="w-full max-w-md space-y-8">
-          {/* Header */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12 xl:p-24 bg-[#E6F6FF] relative z-20">
+        <div className="w-full max-w-md">
           <div className="text-center sm:text-left">
             <h1 className="text-3xl font-bold tracking-tight text-white mb-2">
               Sign in to your account
