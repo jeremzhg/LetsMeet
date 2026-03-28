@@ -13,9 +13,74 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
+model Organization {
   id             String     @id @default(uuid())
   email          String     @unique
   name           String
   hashedPassword String
+  details        String
+  events         Events[]
+}
+
+model Corporation {
+  id             String     @id @default(uuid())
+  email          String     @unique
+  name           String
+  hashedPassword String?
+  details        String
+  category       String
+  isClaimed      Boolean    @default(false)
+  partners       Partners[]
+  matchScores    MatchScore[]
+}
+
+model Events {
+  id                   String       @id @default(uuid())
+  details              String       @db.Text
+  title                String
+  date                 DateTime
+  country              String
+  city                 String
+  expectedParticipants Int
+  organizationID       String
+  status               String       @default("pending")
+  organization         Organization @relation(fields: [organizationID], references: [id])
+  partners             Partners[]
+  matchScores          MatchScore[]
+  packages             Package[]
+}
+
+model Partners {
+  eventID       String
+  corporationID String
+  status        String
+  packageID     String?
+
+  event       Events      @relation(fields: [eventID], references: [id])
+  corporation Corporation @relation(fields: [corporationID], references: [id])
+  package     Package?    @relation(fields: [packageID], references: [id])
+
+  @@id([eventID, corporationID])
+}
+
+model Package {
+  id        String     @id @default(uuid())
+  cost      Int
+  title     String     @db.Text
+  details   String     @db.Text
+  eventID   String
+  event     Events     @relation(fields: [eventID], references: [id])
+  partners  Partners[]
+}
+
+model MatchScore {
+  eventID       String
+  corporationID String
+  score         Float
+  reasoning     String? @db.Text // Nullable as per ERD
+
+  event       Events      @relation(fields: [eventID], references: [id])
+  corporation Corporation @relation(fields: [corporationID], references: [id])
+
+  @@id([eventID, corporationID])
 }

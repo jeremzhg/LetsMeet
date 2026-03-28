@@ -13,7 +13,6 @@ Scrapes potential partner(preset database for this project, allowed by lecturer)
 #### Non self explanatory stuff:  
 - MatchScore and Partners are divided because the partners table would store a score for partnerships that havent been formed if the score was put there.
 - isClaimed on corporation is incase a "scraped" corporation signs up to the website
-- pastEvents is to be used as additional context for fit score
 
 ## API
 ### 1. Authentication & Onboarding
@@ -49,7 +48,8 @@ Register a Corporation. **(Triggers Claim Logic)**
   "email": "marketing@google.com",
   "password": "securePassword123",
   "name": "Google",
-  "details": "A technology company specializing in..."
+  "details": "A technology company specializing in...",
+  "category": "Technology"
 }
 ```
 
@@ -61,88 +61,232 @@ Login for Corporations.
   "password": "securePassword123"
 }
 ```
+#### `GET /auth/me`
+Returns the user, used to determine which view to render depending on the role  
+Response body:
+```json
+{
+    "message": "verified",
+    "user": {
+        "id": "71fa76d7-3211-480a-bf19-e68bd05bce29",
+        "email": "marketing@google.com",
+        "role": "corporation"
+    }
+}
+```
+
+#### `POST /auth/logout`  
+
+logout for everyone  
+no response body, just make sure to set withCredentials: true
 
 ---
 
 ### 2. Event Management 
 
-#### `GET /org/events`
-Retrieve all events
+#### `GET /events`
+Retrieve all events (public).  
+**Response:**
+```json
+{
+  "success": true,
+  "count": 2,
+  "data": [
+    {
+      "id": "uuid",
+      "title": "Annual Hackathon 2026",
+      "details": "A 24-hour hackathon...",
+      "date": "2026-10-10T09:00:00.000Z",
+      "country": "Indonesia",
+      "city": "Jakarta",
+      "status": "pending",
+      "expectedParticipants": 300,
+      "organizationID": "uuid",
+      "organization": { "name": "CS Society", "email": "cs@org.edu" },
+      "_count": { "partners": 3 }
+    }
+  ]
+}
+```
+
+#### `GET /org/:userID/events`
+Retrieve all events from a specific organization.  
+**Response:**
+```json
+{
+  "success": true,
+  "count": 1,
+  "data": [ { "id": "uuid", "title": "...", "date": "...", "status": "pending", "..." : "..." } ]
+}
+```
+
+#### `GET /corp/:userID/events`
+Retrieve all events that a specific corporation has partners in (all status).  
+**Response:**
+```json
+{
+  "success": true,
+  "count": 1,
+  "data": [
+    {
+      "id": "uuid",
+      "title": "Annual Hackathon 2026",
+      "status": "pending",
+      "organization": { "name": "CS Society", "email": "cs@org.edu" },
+      "partners": [{ "status": "accepted" }]
+    }
+  ]
+}
+```
 
 #### `POST /org/events`
-Create a new event.
+Create a new event. **(Auth required, org only)**
 ```json
 {
   "title": "Annual Hackathon 2026",
   "date": "2026-10-10T09:00:00Z",
-  "details": "A 24-hour hackathon focused on AI and sustainability..."
+  "details": "A 24-hour hackathon focused on AI and sustainability...",
+  "country": "Indonesia",
+  "city": "Jakarta",
+  "status": "pending",
+  "expectedParticipants": 300,
+  "packages": [
+    { "title": "Gold Sponsorship", 
+      "cost": 5000, 
+      "details": "Logo on banner, booth, etc." },
+    { "title": "Silver Sponsorship", 
+      "cost": 2000, 
+      "details": "Logo on website" }
+  ]
 }
 ```
 
 #### `GET /org/events/:id`
-Get details of a specific event.
+Get details of a specific event (includes organization info).
+
+#### `GET /org/events/:id/partners`
+Retrieve the partners and their status for a specific event.  
+**Response:**
+```json
+{
+  "success": true,
+  "count": 2,
+  "data": [
+    {
+      "eventID": "uuid",
+      "corporationID": "uuid",
+      "status": "pending",
+      "packageID": null,
+      "corporation": {
+        "id": "uuid",
+        "name": "Google",
+        "email": "marketing@google.com",
+        "details": "A technology company...",
+        "category": "Technology"
+      },
+      "package": null
+    }
+  ]
+}
+```
 
 #### `PUT /org/events/:id`
-Update an event.
+Update an event. **(Auth required, org only)**
 ```json
 {
   "title": "Annual Hackathon 2026 (Updated)",
-  "details": "Updated details regarding the venue..."
+  "details": "Updated details regarding the venue...",
+  "country": "Indonesia",
+  "city": "Bandung",
+  "expectedParticipants": 500,
+  "status": "completed",
+  "packages": [
+    { 
+      "id": "package-uuid",
+      "title": "Gold Sponsorship",
+      "cost": 6000,
+      "details": "Speaker slot, 20 second ad-libs, logo on banner, booth, etc." },
+    { 
+      "title": "Bronze Sponsorship",
+      "cost": 500,
+      "details": "20 second ad-libs" }
+  ]
 }
 ```
+When an event is completed, its associated partners will automatically be treated as past event history.
 
 ---
 
 ### 3. AI Discovery & Matching
 **Note:** All lists returned here must be **sorted by `score` DESC**.
 
-#### `GET /events/:id/matches`
-**(For Org)** Get a ranked list of Corporations that fit a specific event.
+#### `GET /matches/:eventID`
+Get a ranked list of Corporations that fit a specific event. Fetches existing scores if available, otherwise calculates them via AI.
+* **Response:**
+```json
+{
+  "success": true,
+  "count": 2,
+  "data": [
+    {
+      "eventID": "uuid-event",
+      "corporationID": "uuid-1",
+      "score": 98.5,
+      "reasoning": "Tech Corp has a history of sponsoring hackathons...",
+      "corporation": {
+        "name": "Tech Corp"
+      }
+    },
+    {
+      "eventID": "uuid-event",
+      "corporationID": "uuid-2",
+      "score": 85.0,
+      "reasoning": "Financial institutions often look for...",
+      "corporation": {
+        "name": "Bank of Scraped Data"
+      }
+    }
+  ]
+}
+```
+
+#### `PUT /matches/:eventID`
+**(For Org)** Force update matches for an event. Explicitly recalculates match scores using AI and overwrites existing records in the database.
+* **Response:** Same format as `GET /matches/:eventID` but includes a `"message": "Match scores successfully updated."`.
+
+#### `GET /corp/:id/matches`
+**(For Corp)** Get a ranked list of Events that fit a specific event.
 * **Response:**
 ```json
 [
   {
-    "corporationID": "uuid-1",
-    "name": "Tech Corp",
+    "eventID": "uuid-1",
+    "name": "Tech Org",
     "score": 98.5,
-    "isClaimed": true,
-    "aiReasoning": "Tech Corp has a history of sponsoring hackathons..."
+    "aiReasoning": "yeah good event"
   },
   {
-    "corporationID": "uuid-2",
-    "name": "Bank of Scraped Data",
-    "score": 85.0,
-    "isClaimed": false,
-    "aiReasoning": "Financial institutions often look for..."
-  }
+    "eventID": "uuid-2",
+    "name": "Tech Org 2",
+    "score": 60.5,
+    "aiReasoning": "yeah bad event"
+  },
 ]
 ```
-
-#### `GET /corp/opportunities`
-**(For Corp)** Get a ranked list of Events that fit the logged-in Corporation's profile.
-* **Response:**
-```json
-[
-  {
-    "eventID": "uuid-5",
-    "title": "CS Career Fair",
-    "orgName": "University CS Dept",
-    "score": 92.0,
-    "date": "2026-11-05"
-  }
-]
-```
-
 #### `GET /corp/:id/history`
-Get the `pastEvents` list for a corporation (provides context on what they usually sponsor).
+Get the past events list for a corporation.
+* **Query Parameters:**
+  * `eventStatus` (optional): Filter the past events by event status (e.g., `?eventStatus=completed`, or `?eventStatus=ongoing`).
+  * `partnerStatus` (optional): Filter the past events by partnership status (e.g., `?partnerStatus=accepted`, or `?partnerStatus=rejected`).
 * **Response:**
 ```json
 [
   {
-    "pastEventID": "uuid-9",
+    "id": "uuid-9",
     "title": "Open Source Summit 2024",
     "date": "2024-05-12",
-    "details": "Contributing to open source projects....."
+    "details": "Contributing to open source projects.....",
+    "status": "completed"
   }
 ]
 ```
@@ -151,29 +295,114 @@ Get the `pastEvents` list for a corporation (provides context on what they usual
 
 ### 4. Partnership Management
 
-#### `POST /partners/contact`
-Initiate a partnership (Send Proposal).
-```json
-{
-  "eventID": "uuid-of-event",
-  "corporationID": "uuid-of-corp"
-}
-```
-
-#### `GET /partners/requests`
-View pending partnership requests for the logged-in user.
-
-#### `PUT /partners/status`
-Accept or Reject a partnership proposal.
+#### `POST /partners`
+Initiate a partnership (Send Proposal). Status defaults to `"pending"`.
 ```json
 {
   "eventID": "uuid-of-event",
   "corporationID": "uuid-of-corp",
-  "status": "accepted" // or "rejected"
+  "packageID": "uuid-of-package" // optional
 }
 ```
-## Pages
+**Response (201):**
+```json
+{
+  "success": true,
+  "data": {
+    "eventID": "uuid",
+    "corporationID": "uuid",
+    "status": "pending",
+    "packageID": null
+  }
+}
+```
 
+#### `PUT /partners`
+Update a partnership (status, package, etc.).
+```json
+{
+  "eventID": "uuid-of-event",
+  "corporationID": "uuid-of-corp",
+  "status": "accepted", // or "rejected" or "pending"
+  "packageID": "uuid-of-package" // optional
+}
+```
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "eventID": "uuid",
+    "corporationID": "uuid",
+    "status": "accepted",
+    "packageID": "uuid"
+  }
+}
+```
+#### `GET /partners`
+Retrieve all partners for a given corporation or organization.
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "eventID": "uuid",
+      "corporationID": "uuid",
+      "status": "pending",
+      "packageID": null,
+      "event": {
+        "id": "uuid",
+        "title": "Annual Hackathon",
+        "date": "2026-10-10T09:00:00.000Z",
+        "country": "Indonesia",
+        "city": "Jakarta"
+      },
+      "corporation": {
+        "id": "uuid",
+        "name": "Tech Corp",
+        "email": "contact@techcorp.com",
+        "category": "Technology"
+      }
+    }
+  ]
+}
+```
+
+#### `GET /partners/all/:eventID`
+Retrieve all partners for a given event.
+**Response (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "eventID": "uuid",
+      "corporationID": "uuid",
+      "status": "pending",
+      "packageID": null
+    }
+  ]
+}
+```
+
+#### `GET /partners/details/:eventID`
+Get details of a specific partnership.
+* **Query Parameters:**
+  * `corporationID`: The UUID of the corporation.
+```json
+{
+  "success": true,
+  "data": {
+    "eventID": "uuid",
+    "corporationID": "uuid",
+    "status": "pending",
+    "packageID": null
+  }
+}
+```
+
+## Pages
 ### 1. Public Pages (Authentication & Landing)
 
 #### **Landing Page**
@@ -203,75 +432,72 @@ Accept or Reject a partnership proposal.
 * **Purpose:** Overview of all events managed by this student organization.
 * **UI Components:**
     * **"Create New Event" Button:** Prominent floating action button or header button.
-    * **Event Cards List:** Displays brief details (Title, Date).
+    * **Event Cards List:** Displays brief details (Title, Date, Status).
 * **Key API Calls:**
-    * `GET /org/events` (Load list)
+    * `GET /org/:userID/events` (Load list)
 
 #### **Page: Create / Edit Event**
 * **Route:** `/org/events/new` or `/org/events/:id/edit`
 * **Purpose:** Form to input event details.
 * **UI Components:**
     * **Rich Text Editor:** For `details` (Crucial for the AI to work well—encourage users to be descriptive).
+    * **Dynamic Packages Section:** Ability to add, edit, or remove sponsorship packages (Title, Cost, and Details) directly in the form.
     * **Save Button:** "Save & Find Matches" (Triggers the async matching).
 * **Key API Calls:**
     * `POST /org/events` or `PUT /org/events/:id`
 
-#### **Page: Event Details & AI Matches (The Core Feature)**
+#### **Page: Event Workspace (Matches & Inbox)**
 * **Route:** `/org/events/:id`
-* **Purpose:** The "Menu" where they pick sponsors.
+* **Purpose:** The central hub for an event, split into tabs for finding sponsors and managing the partnership pipeline.
 * **UI Components:**
     * **Event Info Header:** Title, Date, Description.
-    * **The Match Table (Sorted by Score):**
-        * **Columns:** Company Name, Fit Score (displayed as a Green/Yellow/Red badge), AI Reasoning (Tooltip or expandable row).
+    * **Tab 1: AI Matches (Discovery):**
+        * **The Match Table (Sorted by Score):**
+            * **Columns:** Company Name, Fit Score (displayed as a Green/Yellow/Red badge), AI Reasoning (Tooltip or expandable row).
+        * **Action:** "Status" button for each row.
+        * **Action:** "Force Update Matches" button at the top to refresh scores using AI.
+    * **Tab 2: Inbox & Pipeline (Management):**
+        * **Kanban or List View:** Shows all active partnerships for this event, grouped by Status (e.g., `Applied` [from corps], `Contacted` [by org], `Accepted`, `Rejected`).
+        * **Action:** Dropdowns to manually update the status of any partnership.
 * **Key API Calls:**
-    * `GET /events/:id/matches` (The ordered list)
-    * `POST /partners/contact` (When "Send Proposal" is clicked)
-
-#### **Page: Partnership Inbox**
-* **Route:** `/org/inbox`
-* **Purpose:** Track status of sent proposals.
-* **UI Components:**
-    * **List View:** Grouped by Status (`Potential` -> `Contacted` -> `Accepted` / `Rejected`).
-* **Key API Calls:**
-    * `GET /partners/requests`
+    * `GET /org/events/:id`
+    * `GET /matches/:eventID` (To load the matches dynamically)
+    * `PUT /matches/:eventID` (To force refresh the matches)
+    * `GET /events/:id/partners`
+    * `POST /partners`
+    * `PUT /partners/:id`
 
 ---
 
 ### 3. Corporation Portal 
 
-#### **Page: Opportunity Discovery**
-* **Route:** `/corp/dashboard`
-* **Purpose:** The "Feed" of relevant student events.
+#### **Page: Event Forum**
+* **Route:** `/events`
+* **Purpose:** View current events that are actively seeking partnerships.
 * **UI Components:**
-    * **Smart Feed:** List of events sorted by `score`.
-    * **Fit Card:** Each event card highlights *why* it matches (e.g., "98% Fit - Matches your interest in Hackathons").
+    * **Event Cards:** Shows Event Name, Organization Name, Event Details, and the AI Fit Score for the logged-in corporation.
+    * **Package Details:** A view showing the available sponsorship packages for the event along with their costs and details.
+    * **Action Button:** "Apply for Partnership" (Prompting the corporation to select an available `packageID` to apply for).
 * **Key API Calls:**
-    * `GET /corp/opportunities`
-
-#### **Page: Incoming Requests**
-* **Route:** `/corp/inbox`
-* **Purpose:** Review proposals sent by organizations.
-* **UI Components:**
-    * **Request Card:** Shows Event Name, Organization Name, and the Proposal.
-    * **Action Buttons:** "Accept" (Green), "Reject" (Red).
-* **Key API Calls:**
-    * `GET /partners/requests`
-    * `PUT /partners/status` (To accept/reject)
-
+    * `GET /events`
+    * `POST /partners` (submitting with the chosen `packageID`)
 #### **Page: Corporate Profile & History**
 * **Route:** `/corp/profile`
-* **Purpose:** View/Edit company details and see the scraped `pastEvents` history that the AI is using.
+* **Purpose:** View/Edit company details and see the past event history that the AI is using for context.
 * **UI Components:**
     * **History List:** Read-only list of past sponsorships (e.g., "Open Source Summit 2024").
 * **Key API Calls:**
-    * `GET /corp/:id/history`
+    * `GET /corp/:id/history?eventStatus=completed` // filter for fully completed events
+    * `GET /corp/:id/history?partnerStatus=accepted` // filter where the corp's partnership was accepted
+    * `GET /corp/:id/history?eventStatus=completed&partnerStatus=accepted` // filter by both
 
 ---
 
 ### 4. Shared Components (Design System)
 
-Some reusable components
+Some reusable components:
 
 1.  **`ScoreBadge`:** A visual component that takes a number (0-100) and renders a color-coded badge (e.g., >90 = Green, 70-89 = Yellow, <70 = Grey).
 2.  **`MatchCard`:** A standard card layout used in both dashboards to display the "Opposite Party" details + Score.
 3.  **`RichTextDisplay`:** To render the `details` text safely (since it might be long).
+4.  **`StatusPill`:** A small tag indicating partnership status (`Pending`, `Contacted`, `Accepted`, etc.) for use in the Event Workspace inbox.

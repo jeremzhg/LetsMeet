@@ -55,6 +55,11 @@ Head to https://aistudio.google.com/api-keys and press "Create API Key" located 
     npx prisma migrate dev --name init
     ```
 
+3.  Seed the database with dummy data:
+
+    ```bash
+    npx prisma db seed
+    ```
 ### Running the Server
 
 Start the development server with hot-reloading:

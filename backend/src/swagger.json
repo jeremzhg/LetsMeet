@@ -1,0 +1,395 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "LetsMeet API",
+    "version": "1.0.0",
+    "description": "API documentation for LetsMeet backend, including Authentication, Event Management, Matchmaking, and Partnerships."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local Development Server"
+    }
+  ],
+  "paths": {
+    "/auth/org/register": {
+      "post": {
+        "tags": ["Authentication & Onboarding"],
+        "summary": "Register a new Organization account",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" },
+                  "name": { "type": "string" },
+                  "details": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Organization registered successfully" }
+        }
+      }
+    },
+    "/auth/org/login": {
+      "post": {
+        "tags": ["Authentication & Onboarding"],
+        "summary": "Login for Organizations",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      }
+    },
+    "/auth/corp/register": {
+      "post": {
+        "tags": ["Authentication & Onboarding"],
+        "summary": "Register a Corporation account",
+        "description": "Triggers Claim Logic. Links to scraped data if found.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" },
+                  "name": { "type": "string" },
+                  "details": { "type": "string" },
+                  "category": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Corporation registered successfully" }
+        }
+      }
+    },
+    "/auth/corp/login": {
+      "post": {
+        "tags": ["Authentication & Onboarding"],
+        "summary": "Login for Corporations",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "tags": ["Authentication & Onboarding"],
+        "summary": "Returns the logged-in user profile",
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "tags": ["Authentication & Onboarding"],
+        "summary": "Logout the current user",
+        "responses": {
+          "200": { "description": "Logged out" }
+        }
+      }
+    },
+    "/events": {
+      "get": {
+        "tags": ["Event Management"],
+        "summary": "Retrieve all public events",
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      }
+    },
+    "/org/{userID}/events": {
+      "get": {
+        "tags": ["Event Management"],
+        "summary": "Retrieve all events from a specific organization",
+        "parameters": [
+          { "in": "path", "name": "userID", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      }
+    },
+    "/corp/{userID}/events": {
+      "get": {
+        "tags": ["Event Management"],
+        "summary": "Retrieve all events that a specific corporation has partners in",
+        "parameters": [
+          { "in": "path", "name": "userID", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      }
+    },
+    "/org/events": {
+      "post": {
+        "tags": ["Event Management"],
+        "summary": "Create a new event",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "date": { "type": "string", "format": "date-time" },
+                  "details": { "type": "string" },
+                  "country": { "type": "string" },
+                  "city": { "type": "string" },
+                  "status": { "type": "string" },
+                  "expectedParticipants": { "type": "number" },
+                  "packages": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "title": { "type": "string" },
+                        "cost": { "type": "number" },
+                        "details": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Event created" }
+        }
+      }
+    },
+    "/org/events/{id}": {
+      "get": {
+        "tags": ["Event Management"],
+        "summary": "Get details of a specific event",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      },
+      "put": {
+        "tags": ["Event Management"],
+        "summary": "Update an event",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "details": { "type": "string" },
+                  "country": { "type": "string" },
+                  "city": { "type": "string" },
+                  "expectedParticipants": { "type": "number" },
+                  "status": { "type": "string" },
+                  "packages": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "string" },
+                        "title": { "type": "string" },
+                        "cost": { "type": "number" },
+                        "details": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated" }
+        }
+      }
+    },
+    "/org/events/{id}/partners": {
+      "get": {
+        "tags": ["Event Management"],
+        "summary": "Retrieve the partners and their status for a specific event",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      }
+    },
+    "/matches/{eventID}": {
+      "get": {
+        "tags": ["AI Discovery & Matching"],
+        "summary": "Get a ranked list of Corporations that fit a specific event",
+        "parameters": [
+          { "in": "path", "name": "eventID", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      },
+      "put": {
+        "tags": ["AI Discovery & Matching"],
+        "summary": "Force update matches for an event",
+        "parameters": [
+          { "in": "path", "name": "eventID", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Matches recalculated" }
+        }
+      }
+    },
+    "/corp/{id}/matches": {
+      "get": {
+        "tags": ["AI Discovery & Matching"],
+        "summary": "Get a ranked list of Events that fit a specific corporation",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      }
+    },
+    "/corp/{id}/history": {
+      "get": {
+        "tags": ["AI Discovery & Matching"],
+        "summary": "Get the past events list for a corporation",
+        "parameters": [
+          { "in": "path", "name": "id", "required": true, "schema": { "type": "string" } },
+          { "in": "query", "name": "eventStatus", "required": false, "schema": { "type": "string" } },
+          { "in": "query", "name": "partnerStatus", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      }
+    },
+    "/partners": {
+      "post": {
+        "tags": ["Partnership Management"],
+        "summary": "Initiate a partnership (Send Proposal)",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "eventID": { "type": "string" },
+                  "corporationID": { "type": "string" },
+                  "packageID": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Proposal created" }
+        }
+      },
+      "put": {
+        "tags": ["Partnership Management"],
+        "summary": "Update a partnership",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "eventID": { "type": "string" },
+                  "corporationID": { "type": "string" },
+                  "status": { "type": "string" },
+                  "packageID": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Updated" }
+        }
+      },
+      "get": {
+        "tags": ["Partnership Management"],
+        "summary": "Retrieve all partners for a given corporation or organization",
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      }
+    },
+    "/partners/all/{eventID}": {
+      "get": {
+        "tags": ["Partnership Management"],
+        "summary": "Retrieve all partners for a given event",
+        "parameters": [
+          { "in": "path", "name": "eventID", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      }
+    },
+    "/partners/details/{eventID}": {
+      "get": {
+        "tags": ["Partnership Management"],
+        "summary": "Get details of a specific partnership",
+        "parameters": [
+          { "in": "path", "name": "eventID", "required": true, "schema": { "type": "string" } },
+          { "in": "query", "name": "corporationID", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Success" }
+        }
+      }
+    }
+  }
+}

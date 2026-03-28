@@ -6,11 +6,13 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
   },
   "include": [
     "src/**/*",
-    "prisma.config.ts"
+    "prisma.config.ts",
+    "prisma/**/*"
   ],
   "exclude": [
     "node_modules"
