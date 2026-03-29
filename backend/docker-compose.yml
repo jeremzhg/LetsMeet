@@ -5,8 +5,8 @@ services:
     container_name: letsmeet_db
     environment:
       POSTGRES_USER: letsmeet_user
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
-      POSTGRES_DB: letsmeet
+      POSTGRES_PASSWORD: letsmeet_password
+      POSTGRES_DB: db_name
     ports:
       - "5432:5432"
     restart: unless-stopped
