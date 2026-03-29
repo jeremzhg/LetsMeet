@@ -35,7 +35,9 @@ export const LoginPage = () => {
       }
     } catch (error) {
       console.error("Kesalahan jaringan:", error);
-      alert("Tidak dapat terhubung ke server backend (Pastikan backend sudah nyala).");
+      alert(
+        "Tidak dapat terhubung ke server backend (Pastikan backend sudah nyala).",
+      );
     }
   };
 
@@ -84,7 +86,7 @@ export const LoginPage = () => {
           <div className="mt-auto flex items-center justify-center gap-1.5 text-sm">
             <p className="text-gray-500">Don't have an account?</p>
             <Link
-              to={""}
+              to={"/register"}
               className="font-semibold text-blue-600 transition-colors hover:text-blue-700"
             >
               Sign up
