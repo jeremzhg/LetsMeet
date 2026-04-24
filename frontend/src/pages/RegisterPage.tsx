@@ -51,9 +51,9 @@ const RoleSelection = ({ onSelect }: { onSelect: (role: Role) => void }) => {
       label: "Student Organization",
       description: "Find your dream sponsor with AI-powered recommendations",
       features: [
-        "Smart CV parsing and optimization",
-        "Personalized Job Recommendations",
-        "Skill gap analysis and improvement",
+        "Personalized Sponsor Recommendations",
+        "Create Events",
+        "Showcase Your Organization",
       ],
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="mx-auto mb-3 h-16 w-16 text-gray-800">
@@ -64,7 +64,7 @@ const RoleSelection = ({ onSelect }: { onSelect: (role: Role) => void }) => {
     {
       role: "corp",
       label: "Corporation",
-      description: "Find Perfect Candidates with Intelligent matching",
+      description: "Find Perfect Event Candidates to Sponsor with AI-Powered Matching",
       features: [
         "Detailed Analytics Reports",
         "Advance Candidate Filtering",
@@ -113,7 +113,7 @@ const RoleSelection = ({ onSelect }: { onSelect: (role: Role) => void }) => {
             <button
               className="mt-auto w-full rounded-full bg-[#005a8d] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all duration-200 hover:bg-[#004a75] group-hover:shadow-lg"
             >
-              Continue as {r.role === "org" ? "Organizer" : "Sponsor"}
+              Continue as {r.role === "org" ? "Organization" : "Corporation"}
             </button>
           </div>
         ))}
