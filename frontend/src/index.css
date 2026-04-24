@@ -23,3 +23,7 @@
 .bg-login-image {
   background-image: url("./assets/images/login-bg.png");
 }
+
+.bg-signup-image {
+  background-image: url("./assets/images/signup-bg.png");
+}
