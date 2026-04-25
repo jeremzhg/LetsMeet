@@ -1,8 +1,13 @@
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
-import { HomePage } from "./pages/HomePage";
 import { SelectRolePage } from "./pages/SelectRolePage";
+import { OrgDashboardPage } from "./pages/OrgDashboardPage";
+import { CorporationProfilePage } from "./pages/CorporationProfilePage";
+import { OrgAllEventsPage } from "./pages/OrgAllEventsPage";
+import { EventForumPage } from "./pages/EventForumPage";
+import { EventWorkspacePage } from "./pages/EventWorkspacePage";
+import { OrgProfilePage } from "./pages/OrgProfilePage";
 
 export const App = () => {
   return (
@@ -12,8 +17,16 @@ export const App = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/select-role" element={<SelectRolePage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/home" element={<HomePage />} />
+        <Route path="/home" element={<Navigate to="/org/dashboard" replace />} />
+        <Route path="/org/dashboard" element={<OrgDashboardPage />} />
+        <Route path="/org/events" element={<OrgAllEventsPage />} />
+        <Route path="/org/events/:id" element={<EventWorkspacePage />} />
+        <Route path="/org/profile" element={<OrgProfilePage />} />
+        <Route path="/org/corporations/:id" element={<CorporationProfilePage />} />
+        <Route path="/org/forum" element={<EventForumPage />} />
+        <Route path="/events" element={<EventForumPage />} />
       </Routes>
     </BrowserRouter>
   );
 };
+
