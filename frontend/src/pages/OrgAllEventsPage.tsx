@@ -32,8 +32,10 @@ interface OrgEvent {
   date: string;
   country: string;
   city: string;
+  venue?: string;
   status: string;
   expectedParticipants: number;
+  targetSponsorValue?: number;
   packages?: EventPackage[];
   _count?: { partners: number };
 }
@@ -93,18 +95,10 @@ export const OrgAllEventsPage = () => {
 
         const enrichedEvents: EventCardData[] = await Promise.all(
           (data.data || []).map(async (event: OrgEvent) => {
-            let targetAmount = 0;
+            const targetAmount = Math.max(0, Number(event.targetSponsorValue || 0));
             let securedAmount = 0;
 
             try {
-              // Get event details for packages
-              const detailRes = await fetch(`${API}/org/events/${event.id}`, {
-                credentials: "include",
-              });
-              const detailData = await detailRes.json();
-              const packages: EventPackage[] = detailData.data?.packages || detailData.packages || [];
-              targetAmount = packages.reduce((sum: number, pkg: EventPackage) => sum + pkg.cost, 0);
-
               // Get partners for secured calculation
               const partnersRes = await fetch(`${API}/org/events/${event.id}/partners`, {
                 credentials: "include",
@@ -266,6 +260,12 @@ export const OrgAllEventsPage = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         {event.city}{event.country ? `, ${event.country}` : ""}
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5V4H2v16h5m10 0v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7" />
+                        </svg>
+                        {event.expectedParticipants.toLocaleString()} participants
                       </div>
                     </div>
 

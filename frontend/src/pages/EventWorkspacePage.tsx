@@ -13,8 +13,10 @@ interface EventDetail {
   date: string;
   country: string;
   city: string;
+  venue: string;
   status: string;
   expectedParticipants: number;
+  targetSponsorValue: number;
   packages?: { id: string; title: string; cost: number; details: string }[];
 }
 
@@ -609,6 +611,9 @@ export const EventWorkspacePage = () => {
                                   </p>
                                   <p className="text-[10px] text-gray-400">
                                     {partner.corporation?.category || "General"}
+                                  </p>
+                                  <p className="text-[10px] text-gray-400 truncate">
+                                    {partner.corporation?.email || ""}
                                   </p>
                                 </div>
                               </div>

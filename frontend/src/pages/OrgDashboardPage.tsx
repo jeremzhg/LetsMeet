@@ -12,6 +12,8 @@ interface OrgEvent {
   title: string;
   details: string;
   date: string;
+  venue?: string;
+  targetSponsorValue?: number;
   status: string;
   _count?: { partners: number };
 }
@@ -45,6 +47,7 @@ interface MatchedCorp {
   reasoning: string;
   corporation: {
     name: string;
+    email?: string;
     category?: string;
     details?: string;
   };
@@ -518,6 +521,11 @@ export const OrgDashboardPage = () => {
                             <p className="text-xs text-gray-400 mt-0.5">
                               {sponsor.corporation.category || "General"}
                             </p>
+                            {sponsor.corporation.email && (
+                              <p className="text-xs text-gray-400 mt-0.5 truncate">
+                                {sponsor.corporation.email}
+                              </p>
+                            )}
                           </div>
                           <ScoreBadge score={sponsor.score} size="sm" />
                         </div>

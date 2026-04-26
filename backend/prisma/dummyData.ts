@@ -60,40 +60,40 @@ export const corporationsData = [
 
 export const eventsData = [
   // Tech & Startups
-  { title: "Global AI Summit 2025", details: "The largest gathering of artificial intelligence researchers and industry leaders to discuss the future of AGI and machine learning.", country: "USA", city: "San Francisco", expectedParticipants: 5000 },
-  { title: "Web3 & Crypto Expo", details: "Exploring the latest trends in decentralized finance, blockchain technology, and digital assets.", country: "UAE", city: "Dubai", expectedParticipants: 3500 },
-  { title: "Cyber Security World Conference", details: "Top-tier professionals discussing the evolving landscape of cyber threats and defense mechanisms.", country: "UK", city: "London", expectedParticipants: 4000 },
-  { title: "SaaS Founders Masterclass", details: "Exclusive network event for software-as-a-service entrepreneurs seeking scaling strategies.", country: "Canada", city: "Toronto", expectedParticipants: 800 },
-  { title: "Data Science Forum", details: "Deep dive into big data analytics, predictive modeling, and data engineering.", country: "Germany", city: "Berlin", expectedParticipants: 2000 },
+  { title: "Global AI Summit 2025", details: "The largest gathering of artificial intelligence researchers and industry leaders to discuss the future of AGI and machine learning.", country: "USA", city: "San Francisco", venue: "Moscone Convention Center", expectedParticipants: 5000, targetSponsorValue: 125000 },
+  { title: "Web3 & Crypto Expo", details: "Exploring the latest trends in decentralized finance, blockchain technology, and digital assets.", country: "UAE", city: "Dubai", venue: "Dubai World Trade Centre", expectedParticipants: 3500, targetSponsorValue: 90000 },
+  { title: "Cyber Security World Conference", details: "Top-tier professionals discussing the evolving landscape of cyber threats and defense mechanisms.", country: "UK", city: "London", venue: "ExCeL London", expectedParticipants: 4000, targetSponsorValue: 100000 },
+  { title: "SaaS Founders Masterclass", details: "Exclusive network event for software-as-a-service entrepreneurs seeking scaling strategies.", country: "Canada", city: "Toronto", venue: "Metro Toronto Convention Centre", expectedParticipants: 800, targetSponsorValue: 30000 },
+  { title: "Data Science Forum", details: "Deep dive into big data analytics, predictive modeling, and data engineering.", country: "Germany", city: "Berlin", venue: "CityCube Berlin", expectedParticipants: 2000, targetSponsorValue: 60000 },
 
   // Finance & Business
-  { title: "Future of Fintech & Banking", details: "How digital transformation is reshaping traditional banking and retail investing.", country: "Singapore", city: "Singapore", expectedParticipants: 3000 },
-  { title: "Venture Capital Symposium", details: "Connecting early-stage startups with global investors and VC funds.", country: "USA", city: "New York", expectedParticipants: 1500 },
-  { title: "Global Economic Forum 2024", details: "Macroeconomic trends, international trade policies, and global market outlook.", country: "Switzerland", city: "Zurich", expectedParticipants: 2500 },
-  { title: "Real Estate Investment Expo", details: "Showcasing prime global properties and investment opportunities to high-net-worth individuals.", country: "Australia", city: "Sydney", expectedParticipants: 1200 },
+  { title: "Future of Fintech & Banking", details: "How digital transformation is reshaping traditional banking and retail investing.", country: "Singapore", city: "Singapore", venue: "Marina Bay Sands Expo", expectedParticipants: 3000, targetSponsorValue: 85000 },
+  { title: "Venture Capital Symposium", details: "Connecting early-stage startups with global investors and VC funds.", country: "USA", city: "New York", venue: "Javits Center", expectedParticipants: 1500, targetSponsorValue: 50000 },
+  { title: "Global Economic Forum 2024", details: "Macroeconomic trends, international trade policies, and global market outlook.", country: "Switzerland", city: "Zurich", venue: "Messe Zurich", expectedParticipants: 2500, targetSponsorValue: 70000 },
+  { title: "Real Estate Investment Expo", details: "Showcasing prime global properties and investment opportunities to high-net-worth individuals.", country: "Australia", city: "Sydney", venue: "International Convention Centre Sydney", expectedParticipants: 1200, targetSponsorValue: 45000 },
 
   // Healthcare & Science
-  { title: "International Medical Congress", details: "Presenting the latest breakthroughs in medical science, pharmaceuticals, and patient care.", country: "France", city: "Paris", expectedParticipants: 4500 },
-  { title: "BioTech Innovations Forum", details: "Genomics, customized medicine, and the future of healthcare technology.", country: "USA", city: "Boston", expectedParticipants: 2200 },
-  { title: "Global Health Challenge", details: "Addressing disparities in global healthcare access and pandemic preparedness.", country: "South Africa", city: "Cape Town", expectedParticipants: 1800 },
+  { title: "International Medical Congress", details: "Presenting the latest breakthroughs in medical science, pharmaceuticals, and patient care.", country: "France", city: "Paris", venue: "Paris Expo Porte de Versailles", expectedParticipants: 4500, targetSponsorValue: 110000 },
+  { title: "BioTech Innovations Forum", details: "Genomics, customized medicine, and the future of healthcare technology.", country: "USA", city: "Boston", venue: "Boston Convention and Exhibition Center", expectedParticipants: 2200, targetSponsorValue: 65000 },
+  { title: "Global Health Challenge", details: "Addressing disparities in global healthcare access and pandemic preparedness.", country: "South Africa", city: "Cape Town", venue: "Cape Town International Convention Centre", expectedParticipants: 1800, targetSponsorValue: 55000 },
 
   // Environment & Energy
-  { title: "Renewable Energy Summit", details: "Innovations in solar, wind, and alternative energy sources.", country: "Denmark", city: "Copenhagen", expectedParticipants: 3000 },
-  { title: "Climate Action Global Pact", details: "Leaders formulating actionable strategies for reducing global carbon emissions.", country: "Norway", city: "Oslo", expectedParticipants: 2000 },
-  { title: "Green Automotives Expo", details: "The future of electric vehicles, battery tech, and autonomous driving.", country: "Japan", city: "Tokyo", expectedParticipants: 3800 },
+  { title: "Renewable Energy Summit", details: "Innovations in solar, wind, and alternative energy sources.", country: "Denmark", city: "Copenhagen", venue: "Bella Center Copenhagen", expectedParticipants: 3000, targetSponsorValue: 90000 },
+  { title: "Climate Action Global Pact", details: "Leaders formulating actionable strategies for reducing global carbon emissions.", country: "Norway", city: "Oslo", venue: "Oslo Spektrum", expectedParticipants: 2000, targetSponsorValue: 58000 },
+  { title: "Green Automotives Expo", details: "The future of electric vehicles, battery tech, and autonomous driving.", country: "Japan", city: "Tokyo", venue: "Tokyo Big Sight", expectedParticipants: 3800, targetSponsorValue: 98000 },
 
   // Gaming, Media & Entertainment
-  { title: "Esports World Championship", details: "The final showdown of top esports teams competing across multiple game titles.", country: "South Korea", city: "Seoul", expectedParticipants: 10000 },
-  { title: "Digital Arts & Creators Fair", details: "A celebration of digital artistry, animation, streaming, and content creation.", country: "USA", city: "Los Angeles", expectedParticipants: 6000 },
-  { title: "GameDev Connect", details: "Workshops, panels, and networking for indie and AAA game developers.", country: "Sweden", city: "Stockholm", expectedParticipants: 2500 },
+  { title: "Esports World Championship", details: "The final showdown of top esports teams competing across multiple game titles.", country: "South Korea", city: "Seoul", venue: "COEX Convention Center", expectedParticipants: 10000, targetSponsorValue: 150000 },
+  { title: "Digital Arts & Creators Fair", details: "A celebration of digital artistry, animation, streaming, and content creation.", country: "USA", city: "Los Angeles", venue: "Los Angeles Convention Center", expectedParticipants: 6000, targetSponsorValue: 120000 },
+  { title: "GameDev Connect", details: "Workshops, panels, and networking for indie and AAA game developers.", country: "Sweden", city: "Stockholm", venue: "Stockholmsmassan", expectedParticipants: 2500, targetSponsorValue: 70000 },
 
   // Retail & E-commerce
-  { title: "E-Commerce Logistics Conference", details: "Optimizing supply chain, warehouse management, and last-mile delivery.", country: "Netherlands", city: "Amsterdam", expectedParticipants: 1800 },
-  { title: "Future of Retail Expo", details: "Showcasing innovations in omnichannel retail and consumer behavior tracking.", country: "UK", city: "Manchester", expectedParticipants: 2200 },
+  { title: "E-Commerce Logistics Conference", details: "Optimizing supply chain, warehouse management, and last-mile delivery.", country: "Netherlands", city: "Amsterdam", venue: "RAI Amsterdam", expectedParticipants: 1800, targetSponsorValue: 54000 },
+  { title: "Future of Retail Expo", details: "Showcasing innovations in omnichannel retail and consumer behavior tracking.", country: "UK", city: "Manchester", venue: "Manchester Central", expectedParticipants: 2200, targetSponsorValue: 62000 },
 
   // Education & Learning
-  { title: "EdTech Global", details: "Digital tools shaping modern classrooms and continuing education.", country: "India", city: "Bengaluru", expectedParticipants: 4000 },
-  { title: "International Universities Fair", details: "Connecting prospective students with leading global educational institutions.", country: "Brazil", city: "São Paulo", expectedParticipants: 5000 }
+  { title: "EdTech Global", details: "Digital tools shaping modern classrooms and continuing education.", country: "India", city: "Bengaluru", venue: "Bangalore International Exhibition Centre", expectedParticipants: 4000, targetSponsorValue: 88000 },
+  { title: "International Universities Fair", details: "Connecting prospective students with leading global educational institutions.", country: "Brazil", city: "São Paulo", venue: "Sao Paulo Expo", expectedParticipants: 5000, targetSponsorValue: 105000 }
 ].map(e => ({
   ...e,
   status: 'completed',

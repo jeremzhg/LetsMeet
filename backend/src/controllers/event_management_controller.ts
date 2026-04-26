@@ -20,7 +20,17 @@ export const getAllEvents = async (req: Request, res: Response) => {
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
-    const { title, date, details, country, city, expectedParticipants, packages } = req.body;
+    const {
+      title,
+      date,
+      details,
+      country,
+      city,
+      venue,
+      expectedParticipants,
+      targetSponsorValue,
+      packages,
+    } = req.body;
 
     const organizationID = (req as any).user.id;
     const role = (req as any).user.role;
@@ -30,9 +40,19 @@ export const createEvent = async (req: Request, res: Response) => {
         message: "Forbidden: Only organizations can create events.",
       });
     }
-    if (!title || !date || !details || !country || !city || expectedParticipants == null) {
+    if (
+      !title ||
+      !date ||
+      !details ||
+      !country ||
+      !city ||
+      !venue ||
+      expectedParticipants == null ||
+      targetSponsorValue == null
+    ) {
       return res.status(400).json({
-        message: "Missing required fields: title, date, details, country, city, or expectedParticipants",
+        message:
+          "Missing required fields: title, date, details, country, city, venue, expectedParticipants, or targetSponsorValue",
       });
     }
 
@@ -42,7 +62,9 @@ export const createEvent = async (req: Request, res: Response) => {
       details,
       country,
       city,
+      venue,
       expectedParticipants: Number(expectedParticipants),
+      targetSponsorValue: Number(targetSponsorValue),
       organizationID,
       packages,
     });
@@ -88,7 +110,18 @@ export const getEventById = async (req: Request, res: Response) => {
 export const updateEvent = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, date, details, country, city, expectedParticipants, status, packages } = req.body;
+    const {
+      title,
+      date,
+      details,
+      country,
+      city,
+      venue,
+      expectedParticipants,
+      targetSponsorValue,
+      status,
+      packages,
+    } = req.body;
 
     const updatedEvent = await EventRepo.updateEvent(id as string, {
       title,
@@ -96,7 +129,9 @@ export const updateEvent = async (req: Request, res: Response) => {
       details,
       country,
       city,
+      venue,
       expectedParticipants: expectedParticipants ? Number(expectedParticipants) : undefined,
+      targetSponsorValue: targetSponsorValue ? Number(targetSponsorValue) : undefined,
       status,
       packages,
     });

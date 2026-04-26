@@ -58,7 +58,7 @@ async function main() {
     const shuffledCorps = [...createdCorps].sort(() => 0.5 - Math.random());
     const selectedCorps = shuffledCorps.slice(0, partnerCount);
     
-    const statuses = ['confirmed', 'pending', 'rejected'];
+    const statuses = ['accepted', 'pending', 'rejected'];
 
     for (const corp of selectedCorps) {
         await prisma.partners.create({

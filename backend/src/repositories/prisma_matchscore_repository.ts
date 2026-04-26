@@ -34,6 +34,9 @@ async function getMatchScoreByEventID(eventID: string) {
       corporation: {
         select: {
           name: true,
+          email: true,
+          details: true,
+          category: true,
         },
       },
     },

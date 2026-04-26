@@ -17,8 +17,10 @@ interface EventDetailResponse {
   date: string;
   country: string;
   city: string;
+  venue: string;
   status: string;
   expectedParticipants: number;
+  targetSponsorValue: number;
   packages?: {
     id: string;
     title: string;
@@ -47,7 +49,9 @@ export const OrgEventFormPage = () => {
   const [timeInput, setTimeInput] = useState("");
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
+  const [venue, setVenue] = useState("");
   const [expectedParticipants, setExpectedParticipants] = useState("");
+  const [targetSponsorValue, setTargetSponsorValue] = useState("");
   const [details, setDetails] = useState("");
   const [status, setStatus] = useState("pending");
   const [packages, setPackages] = useState<EventPackageInput[]>([
@@ -118,7 +122,9 @@ export const OrgEventFormPage = () => {
         setTimeInput(localTime);
         setCountry(event.country || "");
         setCity(event.city || "");
+        setVenue(event.venue || "");
         setExpectedParticipants(String(event.expectedParticipants || ""));
+        setTargetSponsorValue(String(event.targetSponsorValue || ""));
         setDetails(event.details || "");
         setStatus(event.status || "pending");
         setPackages(
@@ -171,14 +177,20 @@ export const OrgEventFormPage = () => {
     e.preventDefault();
     setErrorMessage("");
 
-    if (!title.trim() || !details.trim() || !country.trim() || !city.trim() || !dateInput) {
-      setErrorMessage("Please fill in title, date, location, and details.");
+    if (!title.trim() || !details.trim() || !country.trim() || !city.trim() || !venue.trim() || !dateInput) {
+      setErrorMessage("Please fill in title, date, location, venue, and details.");
       return;
     }
 
     const participants = Number(expectedParticipants);
     if (!Number.isFinite(participants) || participants < 1) {
       setErrorMessage("Expected participants must be a positive number.");
+      return;
+    }
+
+    const sponsorTarget = Number(targetSponsorValue);
+    if (!Number.isFinite(sponsorTarget) || sponsorTarget < 1) {
+      setErrorMessage("Target sponsor value must be a positive number.");
       return;
     }
 
@@ -214,7 +226,9 @@ export const OrgEventFormPage = () => {
           details: details.trim(),
           country: country.trim(),
           city: city.trim(),
+          venue: venue.trim(),
           expectedParticipants: participants,
+          targetSponsorValue: sponsorTarget,
           ...(isEditMode ? { status } : {}),
           packages: normalizedPackages,
         }),
@@ -343,6 +357,17 @@ export const OrgEventFormPage = () => {
                   />
                 </div>
 
+                <div className="md:col-span-2">
+                  <label className="mb-1.5 block text-sm font-semibold text-gray-700">Venue</label>
+                  <input
+                    type="text"
+                    value={venue}
+                    onChange={(e) => setVenue(e.target.value)}
+                    placeholder="Main Campus Convention Hall"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 placeholder-gray-400 outline-none transition-all focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+
                 <div>
                   <label className="mb-1.5 block text-sm font-semibold text-gray-700">Expected Participants</label>
                   <input
@@ -351,6 +376,18 @@ export const OrgEventFormPage = () => {
                     value={expectedParticipants}
                     onChange={(e) => setExpectedParticipants(e.target.value)}
                     placeholder="300"
+                    className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 placeholder-gray-400 outline-none transition-all focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold text-gray-700">Target Sponsor Value</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={targetSponsorValue}
+                    onChange={(e) => setTargetSponsorValue(e.target.value)}
+                    placeholder="65000"
                     className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 placeholder-gray-400 outline-none transition-all focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
                   />
                 </div>
