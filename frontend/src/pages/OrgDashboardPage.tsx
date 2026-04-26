@@ -118,19 +118,20 @@ export const OrgDashboardPage = () => {
                 const eventData = await eventRes.json();
                 const eventDetail = eventData?.data || eventData;
                 const packages = (eventDetail?.packages || []) as EventPackage[];
+                const options: { value: string; label: string }[] = [
+                  { value: "__none__", label: "No package" },
+                  ...packages.map((pkg) => ({
+                    value: pkg.id,
+                    label: `${pkg.title} ($${pkg.cost.toLocaleString()})`,
+                  })),
+                ];
 
+                return [eventID, options] as [string, { value: string; label: string }[]];
+              } catch {
                 return [
                   eventID,
-                  [
-                    { value: "__none__", label: "No package" },
-                    ...packages.map((pkg) => ({
-                      value: pkg.id,
-                      label: `${pkg.title} ($${pkg.cost.toLocaleString()})`,
-                    })),
-                  ],
-                ] as const;
-              } catch {
-                return [eventID, [{ value: "__none__", label: "No package" }]] as const;
+                  [{ value: "__none__", label: "No package" }],
+                ] as [string, { value: string; label: string }[]];
               }
             })
           );
@@ -208,10 +209,6 @@ export const OrgDashboardPage = () => {
         body: JSON.stringify({ eventID, corporationID, packageID }),
       });
 
-      const selectedLabel = (offerPackageOptions[eventID] || []).find(
-        (opt) => opt.value === (packageID || "__none__")
-      )?.label;
-
       setIncomingOffers((prev) =>
         prev.map((p) => {
           if (!(p.eventID === eventID && p.corporationID === corporationID)) {
@@ -221,13 +218,6 @@ export const OrgDashboardPage = () => {
           return {
             ...p,
             packageID,
-            package:
-              packageID && selectedLabel
-                ? {
-                    title: selectedLabel.split(" ($")[0],
-                    cost: p.package?.cost || 0,
-                  }
-                : null,
           };
         })
       );
@@ -269,6 +259,16 @@ export const OrgDashboardPage = () => {
 
   const truncate = (text: string, max: number) =>
     text.length > max ? text.slice(0, max) + "..." : text;
+
+  const getOfferPackageLabel = (offer: Partner) => {
+    if (!offer.packageID) return "No package";
+
+    const selected = (offerPackageOptions[offer.eventID] || []).find(
+      (opt) => opt.value === offer.packageID
+    );
+
+    return selected?.label || offer.package?.title || "Selected package";
+  };
 
   /* ── Render ──────────────────────────────────────────────────── */
   return (
@@ -424,8 +424,8 @@ export const OrgDashboardPage = () => {
                             {offer.corporation?.name || "Unknown Corporation"}
                           </h4>
                           <p className="text-sm text-gray-500 truncate">
-                            {offer.package
-                              ? `Offered $${offer.package.cost.toLocaleString()} for "${offer.event?.title}"`
+                            {offer.packageID
+                              ? `${getOfferPackageLabel(offer)} for "${offer.event?.title || "Event"}"`
                               : `Requested details for "${offer.event?.title || "Event"}"`}
                           </p>
                         </div>
