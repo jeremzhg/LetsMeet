@@ -32,6 +32,7 @@ async function matchingService(eventID: string, corporationID?: string) {
           type: SchemaType.OBJECT,
           properties: {
             corporationID: { type: SchemaType.STRING, description: "The ID of the evaluated corporation" },
+            corporationEmail: { type: SchemaType.STRING, description: "The email of the evaluated corporation" },
             score: { type: SchemaType.NUMBER, description: "Compatibility score 0-100" },
             reasoning: { type: SchemaType.STRING, description: "Short explanation for the score. Maximum of 10 words" },
           },
@@ -58,6 +59,7 @@ async function matchingService(eventID: string, corporationID?: string) {
       return `
       ID: ${corp.id}
       Name: ${corp.name}
+      EMAIL: ${corp.email}
       About: ${corp.details}
       Past Sponsorships: ${pastEvents.length > 0 ? pastEvents.join(", ") : "None"}
       `;
@@ -86,7 +88,7 @@ async function matchingService(eventID: string, corporationID?: string) {
       - Assign a fit score (0-100). High score = specific industry alignment.
       - Low score = generic or irrelevant alignment.
       - Provide a 1-sentence reasoning. Maximum of 10 words.
-      - Return an evaluation for every corporation provided with its corresponding corporationID.
+      - Return an evaluation for every corporation provided with its corresponding corporationID and Email.
     `;
 
     try {

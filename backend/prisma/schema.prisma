@@ -42,6 +42,8 @@ model Events {
   country              String
   city                 String
   expectedParticipants Int
+  targetSponsorValue   Int
+  venue                String 
   organizationID       String
   status               String       @default("pending")
   organization         Organization @relation(fields: [organizationID], references: [id])
