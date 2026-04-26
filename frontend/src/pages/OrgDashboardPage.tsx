@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
+import { StatusDropdown } from "../components/fields/StatusDropdown";
 import { StatusPill } from "../components/shared/StatusPill";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
 
@@ -13,6 +14,12 @@ interface OrgEvent {
   date: string;
   status: string;
   _count?: { partners: number };
+}
+
+interface EventPackage {
+  id: string;
+  title: string;
+  cost: number;
 }
 
 interface Partner {
@@ -52,6 +59,9 @@ export const OrgDashboardPage = () => {
   const [events, setEvents] = useState<OrgEvent[]>([]);
   const [incomingOffers, setIncomingOffers] = useState<Partner[]>([]);
   const [recommendedSponsors, setRecommendedSponsors] = useState<MatchedCorp[]>([]);
+  const [offerPackageOptions, setOfferPackageOptions] = useState<
+    Record<string, { value: string; label: string }[]>
+  >({});
   const [loading, setLoading] = useState(true);
 
   /* Fetch user info */
@@ -94,6 +104,38 @@ export const OrgDashboardPage = () => {
           setIncomingOffers(
             (partnersData.data || []).filter((p: Partner) => p.status === "pending")
           );
+
+          const uniqueEventIDs = Array.from(
+            new Set((partnersData.data || []).map((p: Partner) => p.eventID).filter(Boolean))
+          ) as string[];
+
+          const packageEntries = await Promise.all(
+            uniqueEventIDs.map(async (eventID) => {
+              try {
+                const eventRes = await fetch(`${API}/org/events/${eventID}`, {
+                  credentials: "include",
+                });
+                const eventData = await eventRes.json();
+                const eventDetail = eventData?.data || eventData;
+                const packages = (eventDetail?.packages || []) as EventPackage[];
+
+                return [
+                  eventID,
+                  [
+                    { value: "__none__", label: "No package" },
+                    ...packages.map((pkg) => ({
+                      value: pkg.id,
+                      label: `${pkg.title} ($${pkg.cost.toLocaleString()})`,
+                    })),
+                  ],
+                ] as const;
+              } catch {
+                return [eventID, [{ value: "__none__", label: "No package" }]] as const;
+              }
+            })
+          );
+
+          setOfferPackageOptions(Object.fromEntries(packageEntries));
         }
 
         // Fetch recommended sponsors for the first active event
@@ -122,7 +164,7 @@ export const OrgDashboardPage = () => {
   const handlePartnerAction = async (
     eventID: string,
     corporationID: string,
-    status: "accepted" | "rejected"
+    status: "pending" | "accepted" | "rejected"
   ) => {
     try {
       await fetch(`${API}/partners`, {
@@ -131,14 +173,73 @@ export const OrgDashboardPage = () => {
         credentials: "include",
         body: JSON.stringify({ eventID, corporationID, status }),
       });
+
+      if (status === "rejected") {
+        setIncomingOffers((prev) =>
+          prev.filter(
+            (p) => !(p.eventID === eventID && p.corporationID === corporationID)
+          )
+        );
+        return;
+      }
+
       setIncomingOffers((prev) =>
-        prev.filter(
-          (p) => !(p.eventID === eventID && p.corporationID === corporationID)
+        prev.map((p) =>
+          p.eventID === eventID && p.corporationID === corporationID
+            ? { ...p, status }
+            : p
         )
       );
     } catch (err) {
       console.error("Failed to update partner:", err);
     }
+  };
+
+  const handleUpdateOfferPackage = async (
+    eventID: string,
+    corporationID: string,
+    packageID: string | null
+  ) => {
+    try {
+      await fetch(`${API}/partners`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ eventID, corporationID, packageID }),
+      });
+
+      const selectedLabel = (offerPackageOptions[eventID] || []).find(
+        (opt) => opt.value === (packageID || "__none__")
+      )?.label;
+
+      setIncomingOffers((prev) =>
+        prev.map((p) => {
+          if (!(p.eventID === eventID && p.corporationID === corporationID)) {
+            return p;
+          }
+
+          return {
+            ...p,
+            packageID,
+            package:
+              packageID && selectedLabel
+                ? {
+                    title: selectedLabel.split(" ($")[0],
+                    cost: p.package?.cost || 0,
+                  }
+                : null,
+          };
+        })
+      );
+    } catch (err) {
+      console.error("Failed to update partner package:", err);
+    }
+  };
+
+  const handleMarkOfferDone = (eventID: string, corporationID: string) => {
+    setIncomingOffers((prev) =>
+      prev.filter((p) => !(p.eventID === eventID && p.corporationID === corporationID))
+    );
   };
 
   const handleRequestPartnership = async (corporationID: string, eventID: string) => {
@@ -311,7 +412,7 @@ export const OrgDashboardPage = () => {
                     {incomingOffers.map((offer) => (
                       <div
                         key={`${offer.eventID}-${offer.corporationID}`}
-                        className="offer-card flex items-center gap-4 rounded-2xl bg-white border border-gray-100 p-4 shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300"
+                        className="offer-card flex items-start gap-4 rounded-2xl bg-white border border-gray-100 p-4 shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300"
                       >
                         {/* Corp logo placeholder */}
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm">
@@ -329,31 +430,47 @@ export const OrgDashboardPage = () => {
                           </p>
                         </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            onClick={() =>
+                        <div className="w-40 shrink-0 space-y-2">
+                          <StatusDropdown
+                            size="sm"
+                            className="w-full"
+                            value={offer.status}
+                            onChange={(next) =>
                               handlePartnerAction(
                                 offer.eventID,
                                 offer.corporationID,
-                                "rejected"
+                                next as "pending" | "accepted" | "rejected"
                               )
                             }
-                            className="px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-all"
-                          >
-                            Decline
-                          </button>
-                          <button
-                            onClick={() =>
-                              handlePartnerAction(
+                            options={[
+                              { value: "pending", label: "Pending" },
+                              { value: "accepted", label: "Accepted" },
+                              { value: "rejected", label: "Rejected" },
+                            ]}
+                          />
+
+                          <StatusDropdown
+                            size="sm"
+                            className="w-full"
+                            value={offer.packageID || "__none__"}
+                            onChange={(next) =>
+                              handleUpdateOfferPackage(
                                 offer.eventID,
                                 offer.corporationID,
-                                "accepted"
+                                next === "__none__" ? null : next
                               )
                             }
-                            className="px-4 py-2 rounded-xl bg-[#1a2e4a] text-sm font-semibold text-white hover:bg-[#243b5e] transition-all shadow-sm"
-                          >
-                            Accept Offer
-                          </button>
+                            options={offerPackageOptions[offer.eventID] || [{ value: "__none__", label: "No package" }]}
+                          />
+
+                          {offer.status === "accepted" && (
+                            <button
+                              onClick={() => handleMarkOfferDone(offer.eventID, offer.corporationID)}
+                              className="w-full rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+                            >
+                              Mark Done
+                            </button>
+                          )}
                         </div>
                       </div>
                     ))}

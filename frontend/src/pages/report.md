@@ -30,7 +30,9 @@ Three pages were implemented based on the provided screenshots:
 
 ### NOT ai generated(i found)
 - return company contact too on matches 
-
+- missing target amount
+- already established sponsors still show up in recommended sponsors
+- recommended sponsors doesnt show for which event
 
 ### 1. Event Image/Cover Photo Upload
 - **Screenshot reference:** All three pages show event hero images on cards
