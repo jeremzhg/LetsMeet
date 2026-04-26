@@ -7,6 +7,7 @@ import { CorporationProfilePage } from "./pages/CorporationProfilePage";
 import { OrgAllEventsPage } from "./pages/OrgAllEventsPage";
 import { EventForumPage } from "./pages/EventForumPage";
 import { EventWorkspacePage } from "./pages/EventWorkspacePage";
+import { OrgEventFormPage } from "./pages/OrgEventFormPage";
 import { OrgProfilePage } from "./pages/OrgProfilePage";
 
 export const App = () => {
@@ -20,6 +21,8 @@ export const App = () => {
         <Route path="/home" element={<Navigate to="/org/dashboard" replace />} />
         <Route path="/org/dashboard" element={<OrgDashboardPage />} />
         <Route path="/org/events" element={<OrgAllEventsPage />} />
+        <Route path="/org/events/new" element={<OrgEventFormPage />} />
+        <Route path="/org/events/:id/edit" element={<OrgEventFormPage />} />
         <Route path="/org/events/:id" element={<EventWorkspacePage />} />
         <Route path="/org/profile" element={<OrgProfilePage />} />
         <Route path="/org/corporations/:id" element={<CorporationProfilePage />} />

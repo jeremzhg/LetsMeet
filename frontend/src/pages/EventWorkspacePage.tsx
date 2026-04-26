@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
 
@@ -43,6 +43,10 @@ interface Partner {
   package?: { title: string; cost: number } | null;
 }
 
+interface OrgEventSummary {
+  id: string;
+}
+
 const API = "http://localhost:3000";
 
 type TabType = "matches" | "inbox";
@@ -50,20 +54,50 @@ type TabType = "matches" | "inbox";
 /* ── Page Component ────────────────────────────────────────────── */
 export const EventWorkspacePage = () => {
   const { id: eventID } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [matches, setMatches] = useState<MatchedCorp[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [activeTab, setActiveTab] = useState<TabType>("matches");
   const [loading, setLoading] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [sendingProposal, setSendingProposal] = useState<Set<string>>(new Set());
 
   /* Fetch event data */
   useEffect(() => {
     if (!eventID) return;
+
     const fetchData = async () => {
       setLoading(true);
+      setAccessDenied(false);
+
       try {
+        // Ensure user is an organization
+        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
+        const meData = await meRes.json();
+        const role = meData?.user?.role;
+        const isOrgRole = role === "org" || role === "organization";
+
+        if (!meData?.user || !isOrgRole) {
+          navigate("/login", { replace: true });
+          return;
+        }
+
+        // Ensure selected event belongs to current organization
+        const orgEventsRes = await fetch(`${API}/org/${meData.user.id}/events`, {
+          credentials: "include",
+        });
+        const orgEventsData = await orgEventsRes.json();
+        const ownsEvent = (orgEventsData?.data || []).some(
+          (orgEvent: OrgEventSummary) => orgEvent.id === eventID
+        );
+
+        if (!ownsEvent) {
+          setAccessDenied(true);
+          return;
+        }
+
         // Fetch event details
         const eventRes = await fetch(`${API}/org/events/${eventID}`, {
           credentials: "include",
@@ -94,8 +128,9 @@ export const EventWorkspacePage = () => {
         setLoading(false);
       }
     };
+
     fetchData();
-  }, [eventID]);
+  }, [eventID, navigate]);
 
   /* Force refresh matches */
   const handleRefreshMatches = async () => {
@@ -199,6 +234,28 @@ export const EventWorkspacePage = () => {
           <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
             <p className="text-gray-400 text-sm">Loading event workspace…</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="flex min-h-screen bg-[#f8fafc] font-roboto">
+        <Sidebar variant="org-dashboard" ctaPosition="top" />
+        <main className="flex flex-1 items-center justify-center px-8">
+          <div className="max-w-md rounded-2xl border border-red-100 bg-white p-8 text-center shadow-sm">
+            <h2 className="text-xl font-bold text-gray-900">Access Denied</h2>
+            <p className="mt-2 text-sm text-gray-500">
+              This workspace is only available for events created by your organization.
+            </p>
+            <Link
+              to="/org/events"
+              className="mt-5 inline-flex items-center rounded-xl bg-[#1a2e4a] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#243b5e]"
+            >
+              Back to My Events
+            </Link>
           </div>
         </main>
       </div>
