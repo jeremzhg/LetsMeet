@@ -4,6 +4,7 @@ import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusDropdown } from "../components/fields/StatusDropdown";
 import { StatusPill } from "../components/shared/StatusPill";
+import { toAbsoluteImageUrl } from "../utils/image";
 
 import eventTechImg from "../assets/images/event-tech-conference.png";
 import eventNetworkImg from "../assets/images/event-networking.png";
@@ -33,6 +34,7 @@ interface OrgEvent {
   country: string;
   city: string;
   venue?: string;
+  imagePath?: string | null;
   status: string;
   expectedParticipants: number;
   targetSponsorValue?: number;
@@ -225,7 +227,7 @@ export const OrgAllEventsPage = () => {
                   {/* Image header */}
                   <div className="relative h-40 overflow-hidden">
                     <img
-                      src={eventImages[index % eventImages.length]}
+                      src={toAbsoluteImageUrl(event.imagePath) || eventImages[index % eventImages.length]}
                       alt={event.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />

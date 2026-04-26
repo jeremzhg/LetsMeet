@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
+import { toAbsoluteImageUrl } from "../utils/image";
 
 interface EventPackageInput {
   id?: string;
@@ -21,6 +22,7 @@ interface EventDetailResponse {
   status: string;
   expectedParticipants: number;
   targetSponsorValue: number;
+  imagePath?: string | null;
   packages?: {
     id: string;
     title: string;
@@ -54,6 +56,9 @@ export const OrgEventFormPage = () => {
   const [targetSponsorValue, setTargetSponsorValue] = useState("");
   const [details, setDetails] = useState("");
   const [status, setStatus] = useState("pending");
+  const [imagePath, setImagePath] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [packages, setPackages] = useState<EventPackageInput[]>([
     { title: "", cost: "", details: "" },
   ]);
@@ -127,6 +132,7 @@ export const OrgEventFormPage = () => {
         setTargetSponsorValue(String(event.targetSponsorValue || ""));
         setDetails(event.details || "");
         setStatus(event.status || "pending");
+        setImagePath(event.imagePath || null);
         setPackages(
           event.packages && event.packages.length > 0
             ? event.packages.map((pkg) => ({
@@ -249,6 +255,36 @@ export const OrgEventFormPage = () => {
     }
   };
 
+  const handleUploadImageByPath = async () => {
+    if (!isEditMode || !eventID || !imageFile) return;
+    setUploadingImage(true);
+    setErrorMessage("");
+
+    try {
+      const formData = new FormData();
+      formData.append("image", imageFile);
+
+      const res = await fetch(`${API}/org/events/${eventID}/image`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.error || "Failed to upload event image path");
+      }
+
+      setImagePath(data?.data?.imagePath || null);
+      setImageFile(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Unable to upload image path.";
+      setErrorMessage(message);
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[#f8fafc] font-roboto">
@@ -303,6 +339,49 @@ export const OrgEventFormPage = () => {
           )}
 
           <form id="event-form" onSubmit={onSubmit} className="space-y-6">
+            {isEditMode && (
+              <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+                <h2 className="mb-4 text-xl font-bold text-gray-900">Event Cover Image</h2>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-[180px_minmax(0,1fr)] md:items-start">
+                  <div className="h-28 w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+                    {toAbsoluteImageUrl(imagePath) ? (
+                      <img
+                        src={toAbsoluteImageUrl(imagePath) || ""}
+                        alt="Event cover"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-gray-400">
+                        No image set
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-semibold text-gray-700">Select Image</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 placeholder-gray-400 outline-none transition-all focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleUploadImageByPath}
+                        disabled={uploadingImage || !imageFile}
+                        className="shrink-0 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
+                      >
+                        {uploadingImage ? "Saving..." : "Save Path"}
+                      </button>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-400">
+                      The server auto-generates a stored filename using your event id and a UUID.
+                    </p>
+                  </div>
+                </div>
+              </section>
+            )}
+
             <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
               <h2 className="mb-4 text-xl font-bold text-gray-900">Core Information</h2>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">

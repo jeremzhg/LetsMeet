@@ -2,31 +2,17 @@ import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
-import orgDefaultLogo from "../assets/images/org-default-logo.png";
+import { getInitials, toAbsoluteImageUrl } from "../utils/image";
 
 /* ── Types ─────────────────────────────────────────────────────── */
 interface OrgProfile {
   name: string;
   details: string;
   email: string;
-  category: string;
   logoUrl: string | null;
 }
 
 const API = "http://localhost:3000";
-
-const categoryOptions = [
-  "Technology & Engineering",
-  "Business & Finance",
-  "Science & Research",
-  "Arts & Design",
-  "Social Impact & Volunteering",
-  "Health & Medicine",
-  "Education & Academic",
-  "Sports & Recreation",
-  "Media & Communications",
-  "Other",
-];
 
 /* ── Rich Text Toolbar Button ──────────────────────────────────── */
 const ToolbarButton = ({
@@ -61,11 +47,11 @@ export const OrgProfilePage = () => {
     name: "",
     details: "",
     email: "",
-    category: "",
     logoUrl: null,
   });
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [_logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [uploadingLogoPath, setUploadingLogoPath] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [initialLoaded, setInitialLoaded] = useState(false);
@@ -75,34 +61,19 @@ export const OrgProfilePage = () => {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const meData = await meRes.json();
+        const profileRes = await fetch(`${API}/org/profile`, { credentials: "include" });
+        const profileData = await profileRes.json();
 
-        if (meData.user) {
-          // Try to get org name from events endpoint
-          let orgName = "";
-          let orgDetails = "";
-
-          try {
-            const eventsRes = await fetch(`${API}/org/${meData.user.id}/events`, {
-              credentials: "include",
-            });
-            const eventsData = await eventsRes.json();
-            if (eventsData.success && eventsData.data?.length > 0) {
-              orgName = eventsData.data[0].organization?.name || "";
-            }
-          } catch {
-            /* events not available */
-          }
-
-          setProfile({
-            name: orgName || meData.user.email?.split("@")[0] || "",
-            details: orgDetails,
-            email: meData.user.email || "",
-            category: "",
-            logoUrl: null,
-          });
+        if (!profileRes.ok || !profileData?.success) {
+          throw new Error(profileData?.error || "Failed to load org profile");
         }
+
+        setProfile({
+          name: profileData.data?.name || "",
+          details: profileData.data?.details || "",
+          email: profileData.data?.email || "",
+          logoUrl: profileData.data?.imagePath || null,
+        });
       } catch (err) {
         console.error("Failed to fetch profile:", err);
       } finally {
@@ -120,21 +91,33 @@ export const OrgProfilePage = () => {
     }
   }, [initialLoaded, profile.details]);
 
-  /* Handle logo upload */
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLogoFile(file);
-    const reader = new FileReader();
-    reader.onload = (ev) => setLogoPreview(ev.target?.result as string);
-    reader.readAsDataURL(file);
-  };
+  const handleLogoPathUpload = async () => {
+    if (!logoFile) return;
+    setUploadingLogoPath(true);
 
-  const handleRemoveLogo = () => {
-    setLogoFile(null);
-    setLogoPreview(null);
-    setProfile((prev) => ({ ...prev, logoUrl: null }));
-    if (fileInputRef.current) fileInputRef.current.value = "";
+    try {
+      const formData = new FormData();
+      formData.append("image", logoFile);
+
+      const res = await fetch(`${API}/org/profile/image`, {
+        method: "POST",
+        credentials: "include",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.error || "Failed to save logo path");
+      }
+
+      setProfile((prev) => ({ ...prev, logoUrl: data.data?.imagePath || prev.logoUrl }));
+      setLogoFile(null);
+    } catch (err) {
+      console.error("Failed to upload logo path:", err);
+      alert(err instanceof Error ? err.message : "Unable to save logo path");
+    } finally {
+      setUploadingLogoPath(false);
+    }
   };
 
   /* Handle save — will call PUT /org/profile when it exists */
@@ -148,7 +131,6 @@ export const OrgProfilePage = () => {
       console.log("Profile data to save:", {
         name: profile.name,
         details: editorContent,
-        category: profile.category,
       });
 
       // Simulate save delay
@@ -162,7 +144,6 @@ export const OrgProfilePage = () => {
       //   body: JSON.stringify({
       //     name: profile.name,
       //     details: editorContent,
-      //     category: profile.category,
       //   }),
       // });
 
@@ -211,11 +192,17 @@ export const OrgProfilePage = () => {
             <div className="flex items-start gap-6 mb-8">
               <div className="relative shrink-0">
                 <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gray-100 shadow-sm">
-                  <img
-                    src={logoPreview || profile.logoUrl || orgDefaultLogo}
-                    alt="Organization logo"
-                    className="w-full h-full object-cover"
-                  />
+                  {logoPreview || profile.logoUrl ? (
+                    <img
+                      src={logoPreview || toAbsoluteImageUrl(profile.logoUrl) || ""}
+                      alt="Organization logo"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900 text-lg font-bold text-white">
+                      {getInitials(profile.name || profile.email, 3)}
+                    </div>
+                  )}
                 </div>
                 {/* Edit badge */}
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shadow-sm">
@@ -227,36 +214,39 @@ export const OrgProfilePage = () => {
               <div>
                 <p className="text-sm font-semibold text-gray-700 mb-1">Organization Logo</p>
                 <p className="text-xs text-gray-400 mb-3">
-                  Recommended size: 400×400px. JPG, PNG, or GIF.
+                  Upload an image file. Stored name is generated automatically.
                 </p>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <button
                     onClick={() => fileInputRef.current?.click()}
                     className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all"
                   >
-                    Upload New
+                    Choose Image
                   </button>
-                  {(logoPreview || profile.logoUrl) && (
-                    <button
-                      onClick={handleRemoveLogo}
-                      className="text-sm font-semibold text-red-500 hover:text-red-600 transition-colors"
-                    >
-                      Remove
-                    </button>
-                  )}
                   <input
                     ref={fileInputRef}
                     type="file"
-                    accept="image/jpeg,image/png,image/gif"
-                    onChange={handleLogoUpload}
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setLogoFile(file);
+                      setLogoPreview(file ? URL.createObjectURL(file) : null);
+                    }}
                     className="hidden"
                   />
+                  <button
+                    onClick={handleLogoPathUpload}
+                    disabled={uploadingLogoPath || !logoFile}
+                    className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-60"
+                  >
+                    {uploadingLogoPath ? "Saving..." : "Upload"}
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Name + Category row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Name row */}
+            <div className="grid grid-cols-1 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                   Organization Name
@@ -268,34 +258,6 @@ export const OrgProfilePage = () => {
                   placeholder="Enter your organization name"
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
                 />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Category / Focus Area
-                </label>
-                <div className="relative">
-                  <select
-                    value={profile.category}
-                    onChange={(e) => setProfile((prev) => ({ ...prev, category: e.target.value }))}
-                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 appearance-none transition-all"
-                  >
-                    <option value="">Select a category</option>
-                    {categoryOptions.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                  <svg
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
               </div>
             </div>
           </div>

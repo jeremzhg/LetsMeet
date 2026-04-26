@@ -3,6 +3,7 @@ import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusPill } from "../components/shared/StatusPill";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
+import { toAbsoluteImageUrl } from "../utils/image";
 
 import eventTechImg from "../assets/images/event-tech-conference.png";
 import eventNetworkImg from "../assets/images/event-networking.png";
@@ -16,6 +17,7 @@ interface PublicEvent {
   date: string;
   country: string;
   city: string;
+  imagePath?: string | null;
   status: string;
   expectedParticipants: number;
   organizationID: string;
@@ -267,7 +269,7 @@ export const EventForumPage = () => {
                   <div className="px-5 mb-3">
                     <div className="h-36 rounded-xl overflow-hidden">
                       <img
-                        src={eventImages[index % eventImages.length]}
+                        src={toAbsoluteImageUrl(event.imagePath) || eventImages[index % eventImages.length]}
                         alt={event.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
