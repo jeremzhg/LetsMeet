@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
+import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusPill } from "../components/shared/StatusPill";
 
 import eventTechImg from "../assets/images/event-tech-conference.png";
@@ -142,11 +143,12 @@ export const OrgAllEventsPage = () => {
       <Sidebar variant="org-dashboard" ctaPosition="top" />
 
       <main className="flex-1 overflow-y-auto">
+        <TopNavbar />
         <div className="max-w-6xl mx-auto px-8 py-8">
           {/* Page Header */}
           <div className="flex items-start justify-between mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">All Events</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Events</h1>
               <p className="text-gray-500 max-w-lg leading-relaxed">
                 Manage your organization's upcoming initiatives, track sponsorship progress,
                 and ensure alignment with corporate partners.

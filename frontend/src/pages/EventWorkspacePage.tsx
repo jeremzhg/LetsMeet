@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
+import { TopNavbar } from "../components/layout/TopNavbar";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
 
 /* ── Types ─────────────────────────────────────────────────────── */
@@ -244,7 +245,9 @@ export const EventWorkspacePage = () => {
     return (
       <div className="flex min-h-screen bg-[#f8fafc] font-roboto">
         <Sidebar variant="org-dashboard" ctaPosition="top" />
-        <main className="flex flex-1 items-center justify-center px-8">
+        <main className="flex flex-1 flex-col overflow-y-auto">
+          <TopNavbar />
+          <div className="flex flex-1 items-center justify-center px-8">
           <div className="max-w-md rounded-2xl border border-red-100 bg-white p-8 text-center shadow-sm">
             <h2 className="text-xl font-bold text-gray-900">Access Denied</h2>
             <p className="mt-2 text-sm text-gray-500">
@@ -257,6 +260,7 @@ export const EventWorkspacePage = () => {
               Back to My Events
             </Link>
           </div>
+          </div>
         </main>
       </div>
     );
@@ -267,6 +271,7 @@ export const EventWorkspacePage = () => {
       <Sidebar variant="org-dashboard" ctaPosition="top" />
 
       <main className="flex-1 overflow-y-auto">
+        <TopNavbar />
         <div className="max-w-6xl mx-auto px-8 py-8">
           {/* ── Event Header ─────────────────────────────────── */}
           <div className="mb-6">

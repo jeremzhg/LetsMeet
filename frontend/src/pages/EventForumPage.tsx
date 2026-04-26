@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Sidebar } from "../components/layout/Sidebar";
+import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusPill } from "../components/shared/StatusPill";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
 
@@ -163,6 +164,7 @@ export const EventForumPage = () => {
       <Sidebar variant="org-dashboard" />
 
       <main className="flex-1 overflow-y-auto">
+        <TopNavbar />
         <div className="max-w-6xl mx-auto px-8 py-8">
           {/* Header */}
           <div className="flex items-start justify-between mb-6">

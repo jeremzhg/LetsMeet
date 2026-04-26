@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
 
 interface NavItem {
   label: string;
@@ -85,7 +86,7 @@ const orgDashboardNav: NavItem[] = [
 
 const orgPartnershipsNav: NavItem[] = [
   { label: "Profile", icon: <ProfileIcon />, path: "/org/profile" },
-  { label: "All Events", icon: <EventsIcon />, path: "/org/events" },
+  { label: "Your Events", icon: <EventsIcon />, path: "/org/events" },
   { label: "Corporations", icon: <CorporationsIcon />, path: "/org/corporations" },
   { label: "Messages", icon: <MessagesIcon />, path: "/org/messages" },
   { label: "Analytics", icon: <AnalyticsIcon />, path: "/org/analytics" },
@@ -94,17 +95,14 @@ const orgPartnershipsNav: NavItem[] = [
 /* ── Component ────────────────────────────────────────────────── */
 export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
   const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
   const navItems = variant === "org-dashboard" ? orgDashboardNav : orgPartnershipsNav;
 
   const isOrgDashboard = variant === "org-dashboard";
 
   const logo = isOrgDashboard
-    ? { title: "LETSMEET PRO", subtitle: "Management Hub" }
+    ? { title: "LetsMeet", subtitle: "Management Hub" }
     : { title: "Org Dashboard", subtitle: "Partnership Portal" };
-
-  const ctaButton = isOrgDashboard
-    ? { label: "+ Create New Event", path: "/org/events/new" }
-    : { label: "Find Matches", path: "/org/matches" };
 
   const bottomLinks: NavItem[] = isOrgDashboard
     ? [
@@ -116,32 +114,39 @@ export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
         { label: "Logout", icon: <LogoutIcon />, path: "/login" },
       ];
 
-  const ctaElement = (
-    <Link
-      to={ctaButton.path}
-      className="flex items-center justify-center w-full py-2.5 rounded-xl bg-[#1a2e4a] text-white text-sm font-semibold hover:bg-[#243b5e] transition-colors shadow-md"
-    >
-      {ctaButton.label}
-    </Link>
-  );
 
   return (
-    <aside className="sidebar-container flex flex-col w-56 min-h-screen bg-white border-r border-gray-100 py-6 px-4 shrink-0">
+    <aside
+      className={`sidebar-container flex min-h-screen shrink-0 flex-col border-r border-gray-100 bg-white py-6 transition-all duration-200 ${
+        collapsed ? "w-20 px-3" : "w-56 px-4"
+      }`}
+    >
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-2 mb-6">
+      <div className={`mb-6 flex items-center ${collapsed ? "justify-center" : "gap-2.5 px-2"}`}>
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-md">
           <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
-        <div>
-          <h2 className="text-sm font-bold text-blue-700 leading-tight">{logo.title}</h2>
-          <p className="text-[10px] text-gray-400 leading-tight">{logo.subtitle}</p>
-        </div>
+        {!collapsed && (
+          <div>
+            <h2 className="text-sm font-bold text-blue-700 leading-tight">{logo.title}</h2>
+            <p className="text-[10px] text-gray-400 leading-tight">{logo.subtitle}</p>
+          </div>
+        )}
       </div>
 
-      {/* CTA at top */}
-      {ctaPosition === "top" && <div className="mb-5 px-1">{ctaElement}</div>}
+      <button
+        type="button"
+        onClick={() => setCollapsed((prev) => !prev)}
+        className="mb-4 flex items-center justify-center rounded-lg border border-gray-200 py-1.5 text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700"
+        title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      >
+        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d={collapsed ? "M13 5l7 7-7 7M5 5l7 7-7 7" : "M11 19l-7-7 7-7m8 14l-7-7 7-7"} />
+        </svg>
+      </button>
+
 
       {/* Nav items */}
       <nav className="flex-1 flex flex-col gap-1">
@@ -151,14 +156,17 @@ export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
             <Link
               key={item.label}
               to={item.path}
+              title={item.label}
               className={`sidebar-nav-item flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                collapsed ? "justify-center" : ""
+              } ${
                 isActive
                   ? "bg-blue-50 text-blue-700 border-l-[3px] border-blue-600 shadow-sm"
                   : "text-gray-500 hover:bg-gray-50 hover:text-gray-700 border-l-[3px] border-transparent"
               }`}
             >
               {item.icon}
-              {item.label}
+              {!collapsed && item.label}
             </Link>
           );
         })}
@@ -166,7 +174,7 @@ export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
 
       {/* CTA + bottom links */}
       <div className="mt-auto pt-4">
-        {ctaPosition === "bottom" && <div className="mb-4">{ctaElement}</div>}
+
 
         {/* Bottom links */}
         <div className="flex flex-col gap-1">
@@ -174,10 +182,13 @@ export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
             <Link
               key={item.label}
               to={item.path}
-              className="flex items-center gap-3 px-3 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors rounded-lg hover:bg-gray-50"
+              title={item.label}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700 ${
+                collapsed ? "justify-center" : ""
+              }`}
             >
               {item.icon}
-              {item.label}
+              {!collapsed && item.label}
             </Link>
           ))}
         </div>

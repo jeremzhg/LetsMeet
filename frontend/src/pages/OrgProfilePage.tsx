@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
+import { TopNavbar } from "../components/layout/TopNavbar";
 import orgDefaultLogo from "../assets/images/org-default-logo.png";
 
 /* ── Types ─────────────────────────────────────────────────────── */
@@ -192,6 +193,7 @@ export const OrgProfilePage = () => {
       <Sidebar variant="org-partnerships" />
 
       <main className="flex-1 overflow-y-auto">
+        <TopNavbar />
         <div className="max-w-4xl mx-auto px-8 py-8">
           {/* ── Page Header ─────────────────────────────────── */}
           <div className="mb-8">

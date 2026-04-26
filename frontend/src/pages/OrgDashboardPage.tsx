@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
+import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusPill } from "../components/shared/StatusPill";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
 
@@ -174,6 +175,7 @@ export const OrgDashboardPage = () => {
       <Sidebar variant="org-dashboard" />
 
       <main className="flex-1 overflow-y-auto">
+        <TopNavbar />
         <div className="max-w-6xl mx-auto px-8 py-8">
           {/* Header */}
           <div className="flex items-start justify-between mb-8">
@@ -204,7 +206,7 @@ export const OrgDashboardPage = () => {
                     to="/org/events"
                     className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
                   >
-                    View All Events
+                    View Your Events
                   </Link>
                 </div>
 

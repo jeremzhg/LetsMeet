@@ -1,6 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
+import { TopNavbar } from "../components/layout/TopNavbar";
 
 interface EventPackageInput {
   id?: string;
@@ -253,6 +254,7 @@ export const OrgEventFormPage = () => {
       <Sidebar variant="org-dashboard" ctaPosition="top" />
 
       <main className="flex-1 overflow-y-auto">
+        <TopNavbar />
         <div className="mx-auto max-w-5xl px-8 py-8">
           <div className="mb-6 flex items-start justify-between gap-4">
             <div>
