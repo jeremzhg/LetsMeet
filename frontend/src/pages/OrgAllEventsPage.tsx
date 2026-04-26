@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
+import { StatusDropdown } from "../components/fields/StatusDropdown";
 import { StatusPill } from "../components/shared/StatusPill";
 
 import eventTechImg from "../assets/images/event-tech-conference.png";
@@ -43,6 +44,8 @@ interface EventCardData extends OrgEvent {
   progress: number;
 }
 
+type EventStatus = "pending" | "active" | "completed";
+
 const API = "http://localhost:3000";
 
 const eventImages = [eventTechImg, eventNetworkImg, eventCareerImg];
@@ -52,6 +55,7 @@ export const OrgAllEventsPage = () => {
   const [userID, setUserID] = useState<string | null>(null);
   const [events, setEvents] = useState<EventCardData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [updatingEventStatus, setUpdatingEventStatus] = useState<Set<string>>(new Set());
 
   /* Fetch user info */
   useEffect(() => {
@@ -137,6 +141,35 @@ export const OrgAllEventsPage = () => {
       year: "numeric",
     });
 
+  const handleUpdateEventStatus = async (eventID: string, status: EventStatus) => {
+    setUpdatingEventStatus((prev) => new Set(prev).add(eventID));
+    try {
+      const res = await fetch(`${API}/org/events/${eventID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || data?.error || "Failed to update event status");
+      }
+
+      setEvents((prev) =>
+        prev.map((event) => (event.id === eventID ? { ...event, status } : event))
+      );
+    } catch (err) {
+      console.error("Failed to update event status:", err);
+    } finally {
+      setUpdatingEventStatus((prev) => {
+        const next = new Set(prev);
+        next.delete(eventID);
+        return next;
+      });
+    }
+  };
+
   /* ── Render ──────────────────────────────────────────────────── */
   return (
     <div className="flex min-h-screen bg-[#f8fafc] font-roboto">
@@ -191,9 +224,8 @@ export const OrgAllEventsPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {events.map((event, index) => (
-                <Link
+                <div
                   key={event.id}
-                  to={`/org/events/${event.id}`}
                   className="event-card group rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:border-blue-100 transition-all duration-300"
                 >
                   {/* Image header */}
@@ -286,8 +318,32 @@ export const OrgAllEventsPage = () => {
                         </div>
                       </div>
                     )}
+
+                    <div className="mt-4 flex items-center justify-between gap-2 border-t border-gray-100 pt-3">
+                      <Link
+                        to={`/org/events/${event.id}`}
+                        className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
+                      >
+                        Open Workspace
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+
+                      <StatusDropdown
+                        size="sm"
+                        value={event.status}
+                        disabled={updatingEventStatus.has(event.id)}
+                        onChange={(next) => handleUpdateEventStatus(event.id, next as EventStatus)}
+                        options={[
+                          { value: "pending", label: "Pending" },
+                          { value: "active", label: "Active" },
+                          { value: "completed", label: "Completed" },
+                        ]}
+                      />
+                    </div>
                   </div>
-                </Link>
+                </div>
               ))}
             </div>
           )}

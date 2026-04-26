@@ -28,6 +28,10 @@ Three pages were implemented based on the provided screenshots:
 
 ## ⚠️ Missing Backend APIs
 
+### NOT ai generated(i found)
+- return company contact too on matches 
+
+
 ### 1. Event Image/Cover Photo Upload
 - **Screenshot reference:** All three pages show event hero images on cards
 - **Problem:** No `imageUrl` field exists in the Event schema. No image upload endpoint exists.

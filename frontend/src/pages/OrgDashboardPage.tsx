@@ -290,7 +290,7 @@ export const OrgDashboardPage = () => {
               {/* ── Incoming Sponsorship Offers ─────────────── */}
               <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
-                  Incoming Sponsorship Offers
+                  Ongoing Sponsorship Offers
                 </h2>
 
                 {loading ? (

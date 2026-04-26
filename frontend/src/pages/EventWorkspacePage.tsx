@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
+import { StatusDropdown } from "../components/fields/StatusDropdown";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
 
 /* ── Types ─────────────────────────────────────────────────────── */
@@ -44,9 +45,19 @@ interface Partner {
   package?: { title: string; cost: number } | null;
 }
 
+interface EventPackage {
+  id: string;
+  title: string;
+  cost: number;
+  details: string;
+}
+
 interface OrgEventSummary {
   id: string;
 }
+
+type EventStatus = "pending" | "active" | "completed";
+type PartnerStatus = "pending" | "accepted" | "rejected";
 
 const API = "http://localhost:3000";
 
@@ -64,6 +75,16 @@ export const EventWorkspacePage = () => {
   const [accessDenied, setAccessDenied] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [sendingProposal, setSendingProposal] = useState<Set<string>>(new Set());
+  const [updatingEventStatus, setUpdatingEventStatus] = useState(false);
+  const [updatingPartnerStatus, setUpdatingPartnerStatus] = useState<Set<string>>(new Set());
+
+  const eventPackageOptions = [
+    { value: "__none__", label: "No package" },
+    ...((event?.packages || []) as EventPackage[]).map((pkg) => ({
+      value: pkg.id,
+      label: `${pkg.title} ($${pkg.cost.toLocaleString()})`,
+    })),
+  ];
 
   /* Fetch event data */
   useEffect(() => {
@@ -184,8 +205,9 @@ export const EventWorkspacePage = () => {
   };
 
   /* Update partner status */
-  const handleUpdatePartnerStatus = async (corporationID: string, status: string) => {
+  const handleUpdatePartnerStatus = async (corporationID: string, status: PartnerStatus) => {
     if (!eventID) return;
+    setUpdatingPartnerStatus((prev) => new Set(prev).add(corporationID));
     try {
       await fetch(`${API}/partners`, {
         method: "PUT",
@@ -200,6 +222,75 @@ export const EventWorkspacePage = () => {
       );
     } catch (err) {
       console.error("Failed to update partner status:", err);
+    } finally {
+      setUpdatingPartnerStatus((prev) => {
+        const next = new Set(prev);
+        next.delete(corporationID);
+        return next;
+      });
+    }
+  };
+
+  const handleUpdatePartnerPackage = async (corporationID: string, packageID: string | null) => {
+    if (!eventID) return;
+    setUpdatingPartnerStatus((prev) => new Set(prev).add(corporationID));
+
+    try {
+      await fetch(`${API}/partners`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ eventID, corporationID, packageID }),
+      });
+
+      const selectedPackage = (event?.packages || []).find((pkg) => pkg.id === packageID) || null;
+
+      setPartners((prev) =>
+        prev.map((p) =>
+          p.corporationID === corporationID
+            ? {
+                ...p,
+                packageID,
+                package: selectedPackage
+                  ? { title: selectedPackage.title, cost: selectedPackage.cost }
+                  : null,
+              }
+            : p
+        )
+      );
+    } catch (err) {
+      console.error("Failed to update partner package:", err);
+    } finally {
+      setUpdatingPartnerStatus((prev) => {
+        const next = new Set(prev);
+        next.delete(corporationID);
+        return next;
+      });
+    }
+  };
+
+  const handleUpdateEventStatus = async (status: EventStatus) => {
+    if (!eventID || !event) return;
+    setUpdatingEventStatus(true);
+
+    try {
+      const res = await fetch(`${API}/org/events/${eventID}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ status }),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.message || data?.error || "Failed to update event status");
+      }
+
+      setEvent((prev) => (prev ? { ...prev, status } : prev));
+    } catch (err) {
+      console.error("Failed to update event status:", err);
+    } finally {
+      setUpdatingEventStatus(false);
     }
   };
 
@@ -293,6 +384,16 @@ export const EventWorkspacePage = () => {
                 {event?.title || "Event"}
               </h1>
               <div className="flex items-center gap-3 shrink-0">
+                <StatusDropdown
+                  value={event?.status || "pending"}
+                  disabled={updatingEventStatus}
+                  onChange={(next) => handleUpdateEventStatus(next as EventStatus)}
+                  options={[
+                    { value: "pending", label: "Pending" },
+                    { value: "active", label: "Active" },
+                    { value: "completed", label: "Completed" },
+                  ]}
+                />
                 <Link
                   to={`/org/events/${eventID}/edit`}
                   className="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
@@ -512,29 +613,52 @@ export const EventWorkspacePage = () => {
                                 </div>
                               </div>
 
-                              {partner.package && (
-                                <p className="text-xs text-gray-500 mb-2">
-                                  {partner.package.title} • ${partner.package.cost.toLocaleString()}
-                                </p>
-                              )}
-
-                              {/* Status actions */}
-                              {col.key === "pending" && (
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => handleUpdatePartnerStatus(partner.corporationID, "accepted")}
-                                    className="flex-1 py-1.5 rounded-lg bg-green-50 text-green-700 text-xs font-semibold hover:bg-green-100 transition-colors"
-                                  >
-                                    Accept
-                                  </button>
-                                  <button
-                                    onClick={() => handleUpdatePartnerStatus(partner.corporationID, "rejected")}
-                                    className="flex-1 py-1.5 rounded-lg bg-red-50 text-red-600 text-xs font-semibold hover:bg-red-100 transition-colors"
-                                  >
-                                    Reject
-                                  </button>
+                              <div className="mt-2 grid grid-cols-1 gap-2">
+                                <div>
+                                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                                    Status
+                                  </p>
+                                  <StatusDropdown
+                                    size="sm"
+                                    className="w-full"
+                                    value={partner.status}
+                                    disabled={updatingPartnerStatus.has(partner.corporationID)}
+                                    onChange={(next) =>
+                                      handleUpdatePartnerStatus(
+                                        partner.corporationID,
+                                        next as PartnerStatus
+                                      )
+                                    }
+                                    options={[
+                                      { value: "pending", label: "Pending" },
+                                      { value: "accepted", label: "Accepted" },
+                                      { value: "rejected", label: "Rejected" },
+                                    ]}
+                                  />
                                 </div>
-                              )}
+
+                                <div>
+                                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
+                                    Package
+                                  </p>
+                                  <StatusDropdown
+                                    size="sm"
+                                    className="w-full"
+                                    value={partner.packageID || "__none__"}
+                                    disabled={
+                                      updatingPartnerStatus.has(partner.corporationID) ||
+                                      eventPackageOptions.length <= 1
+                                    }
+                                    onChange={(next) =>
+                                      handleUpdatePartnerPackage(
+                                        partner.corporationID,
+                                        next === "__none__" ? null : next
+                                      )
+                                    }
+                                    options={eventPackageOptions}
+                                  />
+                                </div>
+                              </div>
                             </div>
                           ))
                         )}
