@@ -29,18 +29,19 @@ Three pages were implemented based on the provided screenshots:
 ## ⚠️ Missing Backend APIs
 
 ### NOT ai generated(i found)
-- return company contact too on matches 
-- missing target amount
+- return company contact too on matches (done)
+- missing target amount (Done)
 - already established sponsors still show up in recommended sponsors
 - recommended sponsors doesnt show for which event
+- search and filtering
 
-### 1. Event Image/Cover Photo Upload
+### 1. Event Image/Cover Photo Upload (DONE)
 - **Screenshot reference:** All three pages show event hero images on cards
 - **Problem:** No `imageUrl` field exists in the Event schema. No image upload endpoint exists.
 - **Current workaround:** Using pre-generated placeholder images cycled by index
 - **Recommendation:** Add `imageUrl` column to Event table + `POST /org/events/:id/image` upload endpoint
 
-### 2. Event Category/Tags System
+### 2. Event Category/Tags System (not gonna be applied)
 - **Screenshot reference:** Event Forum shows categories like "Technology / Education", "Business / Leadership", "Sustainability / Engineering"
 - **Problem:** Events have no category or tags field in the database schema
 - **Current workaround:** Using truncated `details` text as a category stand-in
@@ -52,13 +53,13 @@ Three pages were implemented based on the provided screenshots:
   }
   ```
 
-### 3. Event Location Venue Name
+### 3. Event Location Venue Name (DONE)
 - **Screenshot reference:** All Events page shows venue names like "Main Campus Center", "Downtown Innovation Hub"
 - **Problem:** Events only have `country` and `city` fields, no venue/address field
 - **Current workaround:** Displaying `city, country` instead
 - **Recommendation:** Add a `venue` field to the Event table
 
-### 4. Sponsorship Target Amount (Aggregated)
+### 4. Sponsorship Target Amount (DONE)
 - **Screenshot reference:** Event Forum shows "$10,000 Sponsorship Target" per event
 - **Problem:** There's no single `sponsorshipTarget` field. Must be calculated by summing all package costs, requiring an extra API call per event.
 - **Current workaround:** Fetching `GET /org/events/:id` per event to get packages and compute sum (N+1 query pattern)
@@ -66,18 +67,20 @@ Three pages were implemented based on the provided screenshots:
   - Include `packages` in the `GET /org/:userID/events` response
   - Or add a computed `totalSponsorshipTarget` field in the events list response
 
-### 5. "CONTACTED" Partnership Status
+### 5. "CONTACTED" Partnership Status (CHECK)
+user input: i think pending and contacted is the same.
 - **Screenshot reference:** Event Workspace Partnership Inbox shows a "CONTACTED" column
 - **Problem:** The Partner table only supports `pending`, `accepted`, and `rejected` statuses. No `contacted` status exists
 - **Current workaround:** Only showing 3 columns (Applied/Accepted/Rejected)
 - **Recommendation:** Add `contacted` to the valid status enum for the Partner table
 
-### 6. Share Prospectus / Export Feature
+### 6. Share Prospectus / Export Feature (REMOVE)
+user input: remove this, dont care and not gonna be applied
 - **Screenshot reference:** Event Workspace shows a "Share Prospectus" button
 - **Problem:** No API endpoint exists for generating or sharing event prospectuses
 - **Recommendation:** Create `GET /org/events/:id/prospectus` that generates a PDF or shareable link
 
-### 7. Server-Side Search & Filtering for Events
+### 7. Server-Side Search & Filtering for Events (KEEP client-side rendered)
 - **Screenshot reference:** Event Forum has a search bar and filter chips (Technology, Under $5k, etc.)
 - **Problem:** `GET /events` does not support query parameters for search, category filtering, or cost-based filtering
 - **Current workaround:** Client-side filtering of all events

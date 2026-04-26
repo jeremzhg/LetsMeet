@@ -12,7 +12,7 @@ interface SidebarProps {
   ctaPosition?: "top" | "bottom";
 }
 
-/* ── Icon helpers ─────────────────────────────────────────────── */
+
 const DashboardIcon = () => (
   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
@@ -75,7 +75,6 @@ const LogoutIcon = () => (
   </svg>
 );
 
-/* ── Config per variant ───────────────────────────────────────── */
 const orgDashboardNav: NavItem[] = [
   { label: "Dashboard", icon: <DashboardIcon />, path: "/org/dashboard" },
   { label: "Events", icon: <EventsIcon />, path: "/org/events" },
@@ -92,7 +91,6 @@ const orgPartnershipsNav: NavItem[] = [
   { label: "Analytics", icon: <AnalyticsIcon />, path: "/org/analytics" },
 ];
 
-/* ── Component ────────────────────────────────────────────────── */
 export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
@@ -121,7 +119,6 @@ export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
         collapsed ? "w-20 px-3" : "w-56 px-4"
       }`}
     >
-      {/* Logo */}
       <div className={`mb-6 flex items-center ${collapsed ? "justify-center" : "gap-2.5 px-2"}`}>
         <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-md">
           <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -147,8 +144,6 @@ export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
         </svg>
       </button>
 
-
-      {/* Nav items */}
       <nav className="flex-1 flex flex-col gap-1">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path || location.pathname.startsWith(item.path + "/");
@@ -172,11 +167,9 @@ export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
         })}
       </nav>
 
-      {/* CTA + bottom links */}
       <div className="mt-auto pt-4">
 
 
-        {/* Bottom links */}
         <div className="flex flex-col gap-1">
           {bottomLinks.map((item) => (
             <Link
