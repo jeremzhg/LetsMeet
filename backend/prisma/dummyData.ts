@@ -1,3 +1,4 @@
+
 export const organizationsData = [
   {
     name: "Summit Planners International",

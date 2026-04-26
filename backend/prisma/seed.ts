@@ -1,4 +1,5 @@
 import 'dotenv/config';
+import { hashPassword } from '../src/services/bcrypt_service';
 import { prisma, disconnectDB } from '../src/configs/db';
 import { organizationsData, corporationsData, eventsData, packagesData } from './dummyData';
 
@@ -11,6 +12,9 @@ async function main() {
   await prisma.corporation.deleteMany();
   await prisma.organization.deleteMany();
 
+  const hashedPassword = await hashPassword("password123");
+  organizationsData.forEach(org => org.hashedPassword = hashedPassword);
+  corporationsData.forEach(corp => corp.hashedPassword = hashedPassword);
   const createdOrgs: any[] = [];
   for (const o of organizationsData) {
     createdOrgs.push(await prisma.organization.create({ data: o }));
