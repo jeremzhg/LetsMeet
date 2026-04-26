@@ -21,9 +21,7 @@ const CATEGORIES = [
   "Real Estate",
 ];
 
-/* ──────────────────────────────────────────────
-   Step indicator dots
-   ────────────────────────────────────────────── */
+
 const StepDots = ({ current, total }: { current: number; total: number }) => (
   <div className="flex items-center justify-center gap-2">
     {Array.from({ length: total }).map((_, i) => (
@@ -41,9 +39,6 @@ const StepDots = ({ current, total }: { current: number; total: number }) => (
   </div>
 );
 
-/* ──────────────────────────────────────────────
-   Stage 0 — Role Selection
-   ────────────────────────────────────────────── */
 const RoleSelection = ({ onSelect }: { onSelect: (role: Role) => void }) => {
   const roles: { role: Role; label: string; description: string; features: string[]; icon: React.ReactNode }[] = [
     {
@@ -82,14 +77,12 @@ const RoleSelection = ({ onSelect }: { onSelect: (role: Role) => void }) => {
 
   return (
     <div className="font-roboto flex min-h-screen w-full flex-col items-center bg-[#E6F6FF] text-gray-800">
-      {/* Header */}
       <div className="mt-16 mb-10 text-center sm:mt-20">
         <h1 className="text-3xl font-extrabold text-gray-900 sm:text-4xl lg:text-5xl">
           Please select your role
         </h1>
       </div>
 
-      {/* Role cards */}
       <div className="flex w-full max-w-4xl flex-col items-center justify-center gap-8 px-6 md:flex-row md:items-stretch">
         {roles.map((r) => (
           <div
@@ -119,7 +112,6 @@ const RoleSelection = ({ onSelect }: { onSelect: (role: Role) => void }) => {
         ))}
       </div>
 
-      {/* Platform features */}
       <div className="mt-16 mb-12 w-full max-w-3xl px-6">
         <h2 className="mb-8 text-center text-2xl font-extrabold text-gray-900">
           Platform Features
@@ -139,7 +131,6 @@ const RoleSelection = ({ onSelect }: { onSelect: (role: Role) => void }) => {
         </div>
       </div>
 
-      {/* Step dots */}
       <div className="mb-10">
         <StepDots current={0} total={3} />
       </div>
@@ -147,9 +138,6 @@ const RoleSelection = ({ onSelect }: { onSelect: (role: Role) => void }) => {
   );
 };
 
-/* ──────────────────────────────────────────────
-   Stage 1 — Credentials Form
-   ────────────────────────────────────────────── */
 interface CredentialsProps {
   role: Role;
   email: string;
@@ -281,7 +269,6 @@ const CredentialsForm = ({
             </div>
           </form>
 
-          {/* Step dots */}
           <div className="mt-6">
             <StepDots current={1} total={3} />
           </div>
@@ -291,9 +278,7 @@ const CredentialsForm = ({
   );
 };
 
-/* ──────────────────────────────────────────────
-   Stage 2 — Organization / Company Details
-   ────────────────────────────────────────────── */
+
 interface DetailsProps {
   role: Role;
   name: string;
@@ -344,7 +329,6 @@ const DetailsForm = ({
               </div>
             )}
 
-            {/* Name field */}
             <div className="mb-6">
               <h2 className="mb-2 ml-1 text-sm font-semibold text-gray-800">{entityLabel} Name</h2>
               <input
@@ -357,7 +341,6 @@ const DetailsForm = ({
               />
             </div>
 
-            {/* Details textarea */}
             <div className="mb-6">
               <h2 className="mb-2 ml-1 text-sm font-semibold text-gray-800">About / Description</h2>
               <textarea
@@ -407,7 +390,6 @@ const DetailsForm = ({
             </div>
           </form>
 
-          {/* Step dots */}
           <div className="mt-6">
             <StepDots current={2} total={3} />
           </div>
@@ -417,38 +399,29 @@ const DetailsForm = ({
   );
 };
 
-/* ──────────────────────────────────────────────
-   Main RegisterPage — orchestrates stages
-   ────────────────────────────────────────────── */
 export const RegisterPage = () => {
   const navigate = useNavigate();
 
-  // Stage: 0 = role select, 1 = credentials, 2 = details
   const [stage, setStage] = useState(0);
   const [role, setRole] = useState<Role | null>(null);
 
-  // Credentials
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [category, setCategory] = useState("");
 
-  // Details
   const [name, setName] = useState("");
   const [details, setDetails] = useState("");
 
-  // UI
   const [errorMessage, setErrorMessage] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  /* ── Stage 0 → 1 ── */
   const handleRoleSelect = (selectedRole: Role) => {
     setRole(selectedRole);
     setErrorMessage("");
     setStage(1);
   };
 
-  /* ── Stage 1 → 2 (validate credentials) ── */
   const handleCredentialsNext = () => {
     setErrorMessage("");
     if (password !== confirmPassword) {
@@ -466,7 +439,6 @@ export const RegisterPage = () => {
     setStage(2);
   };
 
-  /* ── Stage 2 → Submit ── */
   const handleFinalSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage("");
@@ -505,7 +477,6 @@ export const RegisterPage = () => {
     }
   };
 
-  /* ── Render current stage ── */
   if (stage === 0) {
     return <RoleSelection onSelect={handleRoleSelect} />;
   }

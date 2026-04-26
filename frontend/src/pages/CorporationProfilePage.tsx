@@ -6,7 +6,6 @@ import { ScoreBadge } from "../components/shared/ScoreBadge";
 import { StatusPill } from "../components/shared/StatusPill";
 import { getInitials, toAbsoluteImageUrl } from "../utils/image";
 
-/* ── Types ─────────────────────────────────────────────────────── */
 interface CorporationDetails {
   id: string;
   name: string;
@@ -31,7 +30,6 @@ interface PastEvent {
 
 const API = "http://localhost:3000";
 
-/* ── Page Component ────────────────────────────────────────────── */
 export const CorporationProfilePage = () => {
   const { id: corpID } = useParams<{ id: string }>();
   const [corporation, setCorporation] = useState<CorporationDetails | null>(null);
@@ -40,34 +38,47 @@ export const CorporationProfilePage = () => {
   const [corpImageFile, setCorpImageFile] = useState<File | null>(null);
   const [uploadingCorpImage, setUploadingCorpImage] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [canUploadLogo, setCanUploadLogo] = useState(false);
+  const [profileCorpID, setProfileCorpID] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!corpID) return;
-
     const fetchData = async () => {
       setLoading(true);
       try {
-        const corpProfileRes = await fetch(`${API}/corp/${corpID}/profile`, {
+        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
+        const meData = await meRes.json();
+        const meUser = meData?.user;
+
+        const isCorpSelf = Boolean(meUser && meUser.role === "corp" && (!corpID || meUser.id === corpID));
+        const resolvedCorpID = corpID || meUser?.id || null;
+
+        setCanUploadLogo(isCorpSelf);
+        setProfileCorpID(resolvedCorpID);
+
+        if (!resolvedCorpID) {
+          setLoading(false);
+          return;
+        }
+
+        const corpProfileEndpoint = isCorpSelf ? `${API}/corp/profile` : `${API}/corp/${resolvedCorpID}/profile`;
+        const corpProfileRes = await fetch(corpProfileEndpoint, {
           credentials: "include",
         });
         const corpProfileData = await corpProfileRes.json();
+        let hasProfileData = false;
         if (corpProfileRes.ok && corpProfileData?.success) {
           setCorporation(corpProfileData.data);
+          hasProfileData = true;
         }
 
-        // Try to get corporation data from user's events matches
-        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const meData = await meRes.json();
 
-        if (meData.user) {
-          // Get org's events to find the match
-          const eventsRes = await fetch(`${API}/org/${meData.user.id}/events`, {
+        if (meUser) {
+          const eventsRes = await fetch(`${API}/org/${meUser.id}/events`, {
             credentials: "include",
           });
           const eventsData = await eventsRes.json();
 
           if (eventsData.success && eventsData.data?.length > 0) {
-            // Search through events' matches for this corporation
             for (const event of eventsData.data) {
               const matchRes = await fetch(`${API}/matches/${event.id}`, {
                 credentials: "include",
@@ -75,11 +86,11 @@ export const CorporationProfilePage = () => {
               const matchResData = await matchRes.json();
               if (matchResData.success) {
                 const match = (matchResData.data || []).find(
-                  (m: { corporationID: string }) => m.corporationID === corpID
+                  (m: { corporationID: string }) => m.corporationID === resolvedCorpID
                 );
                 if (match) {
                   setCorporation({
-                    id: corpID,
+                    id: resolvedCorpID,
                     name: match.corporation?.name || "Unknown",
                     email: match.corporation?.email || "",
                     details: match.corporation?.details || match.reasoning || "",
@@ -92,17 +103,16 @@ export const CorporationProfilePage = () => {
             }
           }
 
-          // Also try getting corp data from partners
-          if (!corporation) {
+          if (!hasProfileData) {
             const partnersRes = await fetch(`${API}/partners`, { credentials: "include" });
             const partnersData = await partnersRes.json();
             if (partnersData.success) {
               const partnerMatch = (partnersData.data || []).find(
-                (p: { corporationID: string }) => p.corporationID === corpID
+                (p: { corporationID: string }) => p.corporationID === resolvedCorpID
               );
               if (partnerMatch?.corporation) {
                 setCorporation({
-                  id: corpID,
+                  id: resolvedCorpID,
                   name: partnerMatch.corporation.name,
                   email: partnerMatch.corporation.email,
                   details: partnerMatch.corporation.details || "",
@@ -113,9 +123,8 @@ export const CorporationProfilePage = () => {
           }
         }
 
-        // Fetch past event history
         const historyRes = await fetch(
-          `${API}/corp/${corpID}/history?eventStatus=completed`,
+          `${API}/corp/${resolvedCorpID}/history?eventStatus=completed`,
           { credentials: "include" }
         );
         if (historyRes.ok) {
@@ -158,13 +167,14 @@ export const CorporationProfilePage = () => {
   };
 
   const handleSaveCorpImagePath = async () => {
-    if (!corpID || !corpImageFile) return;
+    if (!profileCorpID || !corpImageFile || !canUploadLogo) return;
     setUploadingCorpImage(true);
     try {
       const formData = new FormData();
       formData.append("image", corpImageFile);
 
-      const res = await fetch(`${API}/corp/${corpID}/image`, {
+      const endpoint = corpID ? `${API}/corp/${profileCorpID}/image` : `${API}/corp/profile/image`;
+      const res = await fetch(endpoint, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -235,21 +245,23 @@ export const CorporationProfilePage = () => {
             </Link>
 
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-2 py-1.5">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => setCorpImageFile(e.target.files?.[0] || null)}
-                  className="w-60 bg-transparent px-1 text-xs text-gray-700 placeholder-gray-400 outline-none"
-                />
-                <button
-                  onClick={handleSaveCorpImagePath}
-                  disabled={uploadingCorpImage || !corpImageFile}
-                  className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
-                >
-                  {uploadingCorpImage ? "Saving..." : "Upload Logo"}
-                </button>
-              </div>
+              {canUploadLogo && (
+                <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-2 py-1.5">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setCorpImageFile(e.target.files?.[0] || null)}
+                    className="w-60 bg-transparent px-1 text-xs text-gray-700 placeholder-gray-400 outline-none"
+                  />
+                  <button
+                    onClick={handleSaveCorpImagePath}
+                    disabled={uploadingCorpImage || !corpImageFile}
+                    className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
+                  >
+                    {uploadingCorpImage ? "Uploading..." : "Upload Logo"}
+                  </button>
+                </div>
+              )}
               <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
@@ -363,7 +375,7 @@ export const CorporationProfilePage = () => {
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-xl font-bold text-gray-900">Past Event History</h2>
               <Link
-                to={`/org/corporations/${corpID}/history`}
+                to={`/org/corporations/${profileCorpID || corpID}/history`}
                 className="flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
               >
                 View All

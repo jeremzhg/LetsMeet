@@ -25,6 +25,7 @@ export const App = () => {
         <Route path="/org/events/:id/edit" element={<OrgEventFormPage />} />
         <Route path="/org/events/:id" element={<EventWorkspacePage />} />
         <Route path="/org/profile" element={<OrgProfilePage />} />
+        <Route path="/corp/profile" element={<CorporationProfilePage />} />
         <Route path="/org/corporations/:id" element={<CorporationProfilePage />} />
         <Route path="/org/forum" element={<EventForumPage />} />
         <Route path="/events" element={<EventForumPage />} />

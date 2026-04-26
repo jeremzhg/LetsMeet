@@ -9,7 +9,6 @@ import eventTechImg from "../assets/images/event-tech-conference.png";
 import eventNetworkImg from "../assets/images/event-networking.png";
 import eventCareerImg from "../assets/images/event-career-fair.png";
 
-/* ── Types ─────────────────────────────────────────────────────── */
 interface PublicEvent {
   id: string;
   title: string;
@@ -39,7 +38,6 @@ interface EventWithScore extends PublicEvent {
 const API = "http://localhost:3000";
 const eventImages = [eventTechImg, eventNetworkImg, eventCareerImg];
 
-/* ── Page Component ────────────────────────────────────────────── */
 export const EventForumPage = () => {
   const [userID, setUserID] = useState<string | null>(null);
   const [events, setEvents] = useState<EventWithScore[]>([]);
@@ -51,7 +49,6 @@ export const EventForumPage = () => {
 
   const filterOptions = ["Technology", "Under $5k", "Education", "Business"];
 
-  /* Fetch user */
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -65,17 +62,14 @@ export const EventForumPage = () => {
     fetchUser();
   }, []);
 
-  /* Fetch events + match scores */
   useEffect(() => {
     const fetchEvents = async () => {
       setLoading(true);
       try {
-        // Get all public events
         const eventsRes = await fetch(`${API}/events`, { credentials: "include" });
         const eventsData = await eventsRes.json();
         const allEvents: PublicEvent[] = eventsData.success ? eventsData.data || [] : [];
 
-        // Get corp match scores if we have userID
         let matchMap = new Map<string, number>();
         if (userID) {
           try {
@@ -86,7 +80,6 @@ export const EventForumPage = () => {
             const matches: CorpMatch[] = Array.isArray(matchData) ? matchData : matchData.data || [];
             matches.forEach((m) => matchMap.set(m.eventID, m.score));
           } catch {
-            /* corp matches not available */
           }
         }
 
@@ -106,7 +99,6 @@ export const EventForumPage = () => {
     fetchEvents();
   }, [userID]);
 
-  /* Search + filter logic */
   useEffect(() => {
     let result = [...events];
 
@@ -121,7 +113,6 @@ export const EventForumPage = () => {
       );
     }
 
-    // Client-side filter (limited to text matching since we don't have categories in API)
     if (activeFilters.length > 0) {
       result = result.filter((e) => {
         const text = `${e.title} ${e.details} ${e.organization?.name || ""}`.toLowerCase();
@@ -138,7 +129,6 @@ export const EventForumPage = () => {
     );
   };
 
-  /* Apply for partnership */
   const handleApply = async (eventID: string) => {
     if (!userID) return;
     setApplyingIds((prev) => new Set(prev).add(eventID));
@@ -160,7 +150,6 @@ export const EventForumPage = () => {
     }
   };
 
-  /* ── Render ──────────────────────────────────────────────────── */
   return (
     <div className="flex min-h-screen bg-[#f8fafc] font-roboto">
       <Sidebar variant="org-dashboard" />
@@ -168,7 +157,6 @@ export const EventForumPage = () => {
       <main className="flex-1 overflow-y-auto">
         <TopNavbar />
         <div className="max-w-6xl mx-auto px-8 py-8">
-          {/* Header */}
           <div className="flex items-start justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-blue-700 mb-2">Event Forum</h1>
@@ -176,7 +164,6 @@ export const EventForumPage = () => {
                 Discover and partner with high-impact student organizations.
               </p>
             </div>
-            {/* Filters */}
             <div className="flex items-center gap-2 shrink-0">
               <button className="flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-all">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -200,7 +187,6 @@ export const EventForumPage = () => {
             </div>
           </div>
 
-          {/* Search bar */}
           <div className="relative mb-8">
             <svg
               className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"
@@ -220,7 +206,6 @@ export const EventForumPage = () => {
             />
           </div>
 
-          {/* Event Cards */}
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
@@ -238,14 +223,12 @@ export const EventForumPage = () => {
                   key={event.id}
                   className="event-card group rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:border-blue-100 transition-all duration-300 flex flex-col"
                 >
-                  {/* Colored top accent */}
                   <div className={`h-1 ${
                     event.status === "active" ? "bg-green-500"
                       : event.status === "completed" ? "bg-gray-400"
                       : "bg-amber-400"
                   }`} />
 
-                  {/* Card top section */}
                   <div className="p-5 pb-3">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1 min-w-0">
@@ -265,7 +248,6 @@ export const EventForumPage = () => {
                     </div>
                   </div>
 
-                  {/* Event image */}
                   <div className="px-5 mb-3">
                     <div className="h-36 rounded-xl overflow-hidden">
                       <img
@@ -276,7 +258,6 @@ export const EventForumPage = () => {
                     </div>
                   </div>
 
-                  {/* Event details */}
                   <div className="px-5 pb-5 flex-1 flex flex-col">
                     <div className="space-y-2 mb-4 flex-1">
                       <div className="flex items-center gap-2 text-sm text-gray-500">

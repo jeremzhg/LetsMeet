@@ -4,7 +4,6 @@ import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { getInitials, toAbsoluteImageUrl } from "../utils/image";
 
-/* ── Types ─────────────────────────────────────────────────────── */
 interface OrgProfile {
   name: string;
   details: string;
@@ -14,7 +13,6 @@ interface OrgProfile {
 
 const API = "http://localhost:3000";
 
-/* ── Rich Text Toolbar Button ──────────────────────────────────── */
 const ToolbarButton = ({
   command,
   icon,
@@ -37,7 +35,6 @@ const ToolbarButton = ({
   </button>
 );
 
-/* ── Page Component ────────────────────────────────────────────── */
 export const OrgProfilePage = () => {
   const navigate = useNavigate();
   const editorRef = useRef<HTMLDivElement>(null);
@@ -56,7 +53,6 @@ export const OrgProfilePage = () => {
   const [saving, setSaving] = useState(false);
   const [initialLoaded, setInitialLoaded] = useState(false);
 
-  /* Fetch current user info */
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
@@ -84,7 +80,6 @@ export const OrgProfilePage = () => {
     fetchProfile();
   }, []);
 
-  /* Set initial editor content */
   useEffect(() => {
     if (initialLoaded && editorRef.current && profile.details) {
       editorRef.current.innerHTML = profile.details;
@@ -120,32 +115,16 @@ export const OrgProfilePage = () => {
     }
   };
 
-  /* Handle save — will call PUT /org/profile when it exists */
   const handleSave = async () => {
     setSaving(true);
     const editorContent = editorRef.current?.innerHTML || "";
 
     try {
-      // NOTE: No PUT /org/profile endpoint exists yet.
-      // This is a placeholder that logs the data and shows success state.
       console.log("Profile data to save:", {
         name: profile.name,
         details: editorContent,
       });
-
-      // Simulate save delay
       await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // Would call:
-      // await fetch(`${API}/org/profile`, {
-      //   method: "PUT",
-      //   headers: { "Content-Type": "application/json" },
-      //   credentials: "include",
-      //   body: JSON.stringify({
-      //     name: profile.name,
-      //     details: editorContent,
-      //   }),
-      // });
 
       alert("Profile saved successfully! (Note: No backend endpoint exists yet — see report.md)");
     } catch (err) {
@@ -176,7 +155,6 @@ export const OrgProfilePage = () => {
       <main className="flex-1 overflow-y-auto">
         <TopNavbar />
         <div className="max-w-4xl mx-auto px-8 py-8">
-          {/* ── Page Header ─────────────────────────────────── */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Profile</h1>
             <p className="text-gray-500">
@@ -184,11 +162,9 @@ export const OrgProfilePage = () => {
             </p>
           </div>
 
-          {/* ── Identity Section ─────────────────────────────── */}
           <div className="rounded-2xl border border-gray-200 bg-white p-8 mb-6 shadow-sm">
             <h2 className="text-xl font-bold text-gray-900 mb-6">Identity</h2>
 
-            {/* Logo upload */}
             <div className="flex items-start gap-6 mb-8">
               <div className="relative shrink-0">
                 <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gray-100 shadow-sm">
@@ -204,7 +180,6 @@ export const OrgProfilePage = () => {
                     </div>
                   )}
                 </div>
-                {/* Edit badge */}
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shadow-sm">
                   <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -245,7 +220,6 @@ export const OrgProfilePage = () => {
               </div>
             </div>
 
-            {/* Name row */}
             <div className="grid grid-cols-1 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -262,7 +236,6 @@ export const OrgProfilePage = () => {
             </div>
           </div>
 
-          {/* ── Matching Profile Details ─────────────────────── */}
           <div className="rounded-2xl border border-gray-200 bg-white p-8 mb-8 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
               <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -275,13 +248,11 @@ export const OrgProfilePage = () => {
               and initiatives. Be detailed about your mission and audience.
             </p>
 
-            {/* Rich text editor */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Organization Details & Mission
               </label>
               <div className="rounded-xl border border-gray-200 overflow-hidden focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
-                {/* Toolbar */}
                 <div className="flex items-center gap-1 px-3 py-2 border-b border-gray-100 bg-gray-50">
                   <ToolbarButton
                     command="bold"
@@ -319,7 +290,6 @@ export const OrgProfilePage = () => {
                   />
                 </div>
 
-                {/* Editable area */}
                 <div
                   ref={editorRef}
                   contentEditable
@@ -334,7 +304,6 @@ export const OrgProfilePage = () => {
             </div>
           </div>
 
-          {/* ── Action Buttons ───────────────────────────────── */}
           <div className="flex items-center justify-end gap-4 pb-8">
             <button
               onClick={() => navigate(-1)}

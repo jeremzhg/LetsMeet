@@ -246,6 +246,22 @@ export const OrgEventFormPage = () => {
       }
 
       const targetEventID = isEditMode ? eventID : data?.data?.id;
+
+      if (targetEventID && imageFile) {
+        const formData = new FormData();
+        formData.append("image", imageFile);
+
+        const imageRes = await fetch(`${API}/org/events/${targetEventID}/image`, {
+          method: "POST",
+          credentials: "include",
+          body: formData,
+        });
+        const imageData = await imageRes.json();
+        if (!imageRes.ok || !imageData?.success) {
+          throw new Error(imageData?.error || "Event saved, but image upload failed");
+        }
+      }
+
       navigate(targetEventID ? `/org/events/${targetEventID}` : "/org/events");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unable to save event.";
@@ -272,13 +288,13 @@ export const OrgEventFormPage = () => {
 
       const data = await res.json();
       if (!res.ok || !data?.success) {
-        throw new Error(data?.error || "Failed to upload event image path");
+        throw new Error(data?.error || "Failed to upload event image");
       }
 
       setImagePath(data?.data?.imagePath || null);
       setImageFile(null);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to upload image path.";
+      const message = err instanceof Error ? err.message : "Unable to upload image.";
       setErrorMessage(message);
     } finally {
       setUploadingImage(false);
@@ -339,48 +355,53 @@ export const OrgEventFormPage = () => {
           )}
 
           <form id="event-form" onSubmit={onSubmit} className="space-y-6">
-            {isEditMode && (
-              <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
-                <h2 className="mb-4 text-xl font-bold text-gray-900">Event Cover Image</h2>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-[180px_minmax(0,1fr)] md:items-start">
-                  <div className="h-28 w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
-                    {toAbsoluteImageUrl(imagePath) ? (
-                      <img
-                        src={toAbsoluteImageUrl(imagePath) || ""}
-                        alt="Event cover"
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-gray-400">
-                        No image set
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <label className="mb-1.5 block text-sm font-semibold text-gray-700">Select Image</label>
-                    <div className="flex gap-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                        className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 placeholder-gray-400 outline-none transition-all focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
-                      />
+            <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+              <h2 className="mb-4 text-xl font-bold text-gray-900">Event Cover Image</h2>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-[180px_minmax(0,1fr)] md:items-start">
+                <div className="h-28 w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+                  {toAbsoluteImageUrl(imagePath) ? (
+                    <img
+                      src={toAbsoluteImageUrl(imagePath) || ""}
+                      alt="Event cover"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center text-xs font-semibold text-gray-400">
+                      No image selected
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-semibold text-gray-700">Select Image</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 placeholder-gray-400 outline-none transition-all focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                    />
+                    {isEditMode && (
                       <button
                         type="button"
                         onClick={handleUploadImageByPath}
                         disabled={uploadingImage || !imageFile}
                         className="shrink-0 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
                       >
-                        {uploadingImage ? "Saving..." : "Save Path"}
+                        {uploadingImage ? "Uploading..." : "Upload"}
                       </button>
-                    </div>
-                    <p className="mt-2 text-xs text-gray-400">
-                      The server auto-generates a stored filename using your event id and a UUID.
-                    </p>
+                    )}
                   </div>
+                  {imageFile && (
+                    <p className="mt-2 text-xs text-gray-500">Selected: {imageFile.name}</p>
+                  )}
+                  <p className="mt-2 text-xs text-gray-400">
+                    {isEditMode
+                      ? "The server auto-generates a filename from event id + UUID."
+                      : "The selected image uploads automatically after the event is created."}
+                  </p>
                 </div>
-              </section>
-            )}
+              </div>
+            </section>
 
             <section className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
               <h2 className="mb-4 text-xl font-bold text-gray-900">Core Information</h2>
