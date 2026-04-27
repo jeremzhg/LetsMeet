@@ -19,6 +19,7 @@ type MatchEvaluation = {
   corporationID: string;
   organizationID: string;
   score: number;
+  reasoning: string;
 };
 
 async function generalMatchingService(
@@ -105,6 +106,7 @@ async function generalMatchingService(
             corporationID: { type: SchemaType.STRING, description: "The ID of the evaluated corporation" },
             organizationID: { type: SchemaType.STRING, description: "The ID of the evaluated organization" },
             score: { type: SchemaType.NUMBER, description: "Compatibility score 0-100" },
+            reasoning: { type: SchemaType.STRING, description: "Brief reason for match score, max 15 words" },
           },
         },
       },
@@ -157,6 +159,7 @@ async function generalMatchingService(
         - Return ONLY a JSON array with 1 object.
         - Use the exact IDs provided.
         - Score range: 0-100.
+        - Include reasoning with maximum 15 words.
       `;
 
       const result = await model.generateContent(prompt);
@@ -170,7 +173,8 @@ async function generalMatchingService(
         await upsertGeneralMatchScore(
           evaluation.corporationID,
           evaluation.organizationID,
-          evaluation.score
+          evaluation.score,
+          evaluation.reasoning || "No reasoning provided"
         );
       }
     }
@@ -217,6 +221,7 @@ async function generalMatchingService(
       Task:
       - Evaluate each corporation provided.
       - Assign a fit score (0-100).
+      - Include a concise reasoning with maximum 15 words.
       - Return an evaluation for every corporation with corporationID and organizationID.
       - Return only a JSON array.
     `;
@@ -233,7 +238,8 @@ async function generalMatchingService(
         await upsertGeneralMatchScore(
           evaluation.corporationID,
           evaluation.organizationID,
-          evaluation.score
+          evaluation.score,
+          evaluation.reasoning || "No reasoning provided"
         );
       }
     } catch (error) {

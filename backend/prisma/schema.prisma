@@ -81,7 +81,7 @@ model MatchScore {
   eventID       String
   corporationID String
   score         Float
-  reasoning     String? @db.Text // Nullable as per ERD
+  reasoning     String? @db.Text
 
   event       Events      @relation(fields: [eventID], references: [id])
   corporation Corporation @relation(fields: [corporationID], references: [id])
@@ -93,6 +93,7 @@ model GeneralMatchScore{
   corporationID String
   organizationID String
   matchScore Float
+  reasoning String
   corporation Corporation @relation(fields: [corporationID], references: [id])
   organization Organization @relation(fields: [organizationID], references: [id])
 
