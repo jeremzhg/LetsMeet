@@ -64,9 +64,11 @@ const orgNav: NavItem[] = [
 ];
 
 const corpNav: NavItem[] = [
-  { label: "Dashboard", icon: <DashboardIcon />, path: "/corp/profile" },
-  { label: "Forum", icon: <ForumIcon />, path: "/events" },
-  { label: "Inbox", icon: <InboxIcon />, path: "/partners" },
+  { label: "Dashboard", icon: <DashboardIcon />, path: "/corp/dashboard" },
+  { label: "Organizations", icon: <CorporationsIcon />, path: "/corp/organizations" },
+  { label: "Events", icon: <ForumIcon />, path: "/corp/events" },
+  { label: "Partnerships", icon: <InboxIcon />, path: "/corp/partnerships" },
+  { label: "Profile", icon: <EventsIcon />, path: "/corp/profile" },
 ];
 
 export const Sidebar = ({ variant: _variant, ctaPosition = "bottom" }: SidebarProps) => {

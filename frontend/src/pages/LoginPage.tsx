@@ -30,7 +30,8 @@ export const LoginPage = () => {
 
       if (response.ok) {
         console.log("Berhasil login:", data);
-        navigate("/home");
+        const isCorp = data?.role === "corporation" || loginType === "corp";
+        navigate(isCorp ? "/corp/dashboard" : "/org/dashboard");
       } else {
         setErrorMessage(data.message || "Login failed. Please check your credentials.");
       }

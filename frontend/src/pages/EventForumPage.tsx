@@ -27,13 +27,14 @@ interface PublicEvent {
 
 interface CorpMatch {
   eventID: string;
-  name: string;
   score: number;
-  aiReasoning: string;
+  reasoning?: string;
+  event: PublicEvent;
 }
 
 interface EventWithScore extends PublicEvent {
-  fitScore: number | null;
+  fitScore: number;
+  reasoning?: string;
 }
 
 const API = "http://localhost:3000";
@@ -72,22 +73,29 @@ export const EventForumPage = () => {
         const allEvents: PublicEvent[] = eventsData.success ? eventsData.data || [] : [];
 
         let matchMap = new Map<string, number>();
+        let reasoningMap = new Map<string, string>();
         if (userID) {
           try {
-            const matchRes = await fetch(`${API}/corp/${userID}/matches`, {
+            const matchRes = await fetch(`${API}/matches/corp/${userID}/events`, {
               credentials: "include",
             });
             const matchData = await matchRes.json();
-            const matches: CorpMatch[] = Array.isArray(matchData) ? matchData : matchData.data || [];
-            matches.forEach((m) => matchMap.set(m.eventID, m.score));
+            const matches: CorpMatch[] = matchData?.success ? matchData.data || [] : [];
+            matches.forEach((m) => {
+              matchMap.set(m.eventID, m.score);
+              if (m.reasoning) reasoningMap.set(m.eventID, m.reasoning);
+            });
           } catch {
           }
         }
 
-        const eventsWithScores: EventWithScore[] = allEvents.map((event) => ({
-          ...event,
-          fitScore: matchMap.get(event.id) ?? null,
-        }));
+        const eventsWithScores: EventWithScore[] = allEvents
+          .map((event) => ({
+            ...event,
+            fitScore: matchMap.get(event.id) ?? 0,
+            reasoning: reasoningMap.get(event.id),
+          }))
+          .sort((a, b) => b.fitScore - a.fitScore);
 
         setEvents(eventsWithScores);
         setFilteredEvents(eventsWithScores);
@@ -162,7 +170,7 @@ export const EventForumPage = () => {
             <div>
               <h1 className="text-3xl font-bold text-blue-700 mb-2">Event Forum</h1>
               <p className="text-gray-500">
-                Discover and partner with high-impact student organizations.
+                Search events by AI fit score and apply to the best opportunities first.
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -241,11 +249,9 @@ export const EventForumPage = () => {
                           {event.organization?.name || "Student Organization"}
                         </p>
                       </div>
-                      {event.fitScore !== null && (
-                        <div className="shrink-0 ml-3">
-                          <ScoreBadge score={event.fitScore} size="md" />
-                        </div>
-                      )}
+                      <div className="shrink-0 ml-3">
+                        <ScoreBadge score={event.fitScore} size="md" />
+                      </div>
                     </div>
                   </div>
 
@@ -261,6 +267,9 @@ export const EventForumPage = () => {
 
                   <div className="px-5 pb-5 flex-1 flex flex-col">
                     <div className="space-y-2 mb-4 flex-1">
+                      <p className="line-clamp-2 rounded-lg border border-slate-100 bg-slate-50 px-2.5 py-2 text-xs leading-relaxed text-slate-700">
+                        {event.reasoning || "Fit score generated from your corporation profile and this event's sponsor requirements."}
+                      </p>
                       <div className="flex items-center gap-2 text-sm text-gray-500">
                         <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
