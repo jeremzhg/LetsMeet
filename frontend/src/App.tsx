@@ -11,6 +11,7 @@ import { OrgEventFormPage } from "./pages/OrgEventFormPage";
 import { OrgProfilePage } from "./pages/OrgProfilePage";
 import { OrgCorporationsPage } from "./pages/OrgCorporationsPage";
 import { OrgCorporationHistoryPage } from "./pages/OrgCorporationHistoryPage";
+import { CorporationEventPublicPage } from "./pages/CorporationEventPublicPage";
 
 export const App = () => {
   return (
@@ -33,6 +34,7 @@ export const App = () => {
         <Route path="/org/corporations/:id/history" element={<OrgCorporationHistoryPage />} />
         <Route path="/org/forum" element={<EventForumPage />} />
         <Route path="/events" element={<EventForumPage />} />
+        <Route path="/events/:id" element={<CorporationEventPublicPage />} />
       </Routes>
     </BrowserRouter>
   );

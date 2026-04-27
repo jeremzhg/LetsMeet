@@ -114,8 +114,9 @@ export const OrgCorporationHistoryPage = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {pastEvents.map((event) => (
-                <div
+                <Link
                   key={event.id}
+                  to={`/events/${event.id}`}
                   className="history-card group rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300"
                 >
                   <div className="h-32 bg-gradient-to-br from-slate-700 via-blue-900 to-slate-800 relative">
@@ -137,7 +138,7 @@ export const OrgCorporationHistoryPage = () => {
                     </div>
                     <p className="line-clamp-3 text-sm leading-relaxed text-gray-600">{event.details}</p>
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}

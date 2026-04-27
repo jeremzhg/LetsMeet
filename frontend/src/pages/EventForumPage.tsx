@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusPill } from "../components/shared/StatusPill";
@@ -281,16 +282,22 @@ export const EventForumPage = () => {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => handleApply(event.id)}
-                      disabled={applyingIds.has(event.id)}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#1a2e4a] text-white text-sm font-semibold hover:bg-[#243b5e] transition-all shadow-sm disabled:opacity-60"
-                    >
-                      {applyingIds.has(event.id) ? "Applying..." : "Apply for Partnership"}
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link
+                        to={`/events/${event.id}`}
+                        className="flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 text-sm font-semibold hover:bg-gray-50 transition-all"
+                      >
+                        View Details
+                      </Link>
+
+                      <button
+                        onClick={() => handleApply(event.id)}
+                        disabled={applyingIds.has(event.id)}
+                        className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[#1a2e4a] text-white text-sm font-semibold hover:bg-[#243b5e] transition-all shadow-sm disabled:opacity-60"
+                      >
+                        {applyingIds.has(event.id) ? "Applying..." : "Apply"}
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

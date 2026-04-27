@@ -3,7 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
-import { StatusPill } from "../components/shared/StatusPill";
 import { getInitials, toAbsoluteImageUrl } from "../utils/image";
 
 interface CorporationDetails {
@@ -345,17 +344,13 @@ export const CorporationProfilePage = () => {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {pastEvents.slice(0, 4).map((event) => (
-                  <div
+                  <Link
                     key={event.id}
+                    to={`/events/${event.id}`}
                     className="history-card group rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300"
                   >
                     <div className="h-32 bg-gradient-to-br from-slate-700 via-blue-900 to-slate-800 relative">
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                      <div className="absolute top-3 right-3">
-                        <StatusPill
-                          status={event.status === "completed" ? "Successful" : event.status}
-                        />
-                      </div>
                     </div>
                     <div className="p-4">
                       <h4 className="font-bold text-gray-900 group-hover:text-blue-700 transition-colors mb-1">
@@ -368,7 +363,7 @@ export const CorporationProfilePage = () => {
                         {formatDate(event.date)}
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             )}
