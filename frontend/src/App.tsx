@@ -10,6 +10,7 @@ import { EventWorkspacePage } from "./pages/EventWorkspacePage";
 import { OrgEventFormPage } from "./pages/OrgEventFormPage";
 import { OrgProfilePage } from "./pages/OrgProfilePage";
 import { OrgCorporationsPage } from "./pages/OrgCorporationsPage";
+import { OrgCorporationHistoryPage } from "./pages/OrgCorporationHistoryPage";
 
 export const App = () => {
   return (
@@ -29,6 +30,7 @@ export const App = () => {
         <Route path="/org/corporations" element={<OrgCorporationsPage />} />
         <Route path="/corp/profile" element={<CorporationProfilePage />} />
         <Route path="/org/corporations/:id" element={<CorporationProfilePage />} />
+        <Route path="/org/corporations/:id/history" element={<OrgCorporationHistoryPage />} />
         <Route path="/org/forum" element={<EventForumPage />} />
         <Route path="/events" element={<EventForumPage />} />
       </Routes>

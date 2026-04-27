@@ -20,6 +20,20 @@ interface MatchData {
   reasoning: string;
 }
 
+interface GeneralOrgMatch {
+  corporationID: string;
+  organizationID: string;
+  matchScore: number;
+  reasoning: string;
+}
+
+interface GeneralCorpMatch {
+  corporationID: string;
+  organizationID: string;
+  matchScore: number;
+  reasoning: string;
+}
+
 interface PastEvent {
   id: string;
   title: string;
@@ -41,6 +55,9 @@ export const CorporationProfilePage = () => {
   const [canUploadLogo, setCanUploadLogo] = useState(false);
   const [profileCorpID, setProfileCorpID] = useState<string | null>(null);
 
+  const isCorpRole = (role?: string) => role === "corp" || role === "corporation";
+  const isOrgRole = (role?: string) => role === "org" || role === "organization";
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -49,7 +66,7 @@ export const CorporationProfilePage = () => {
         const meData = await meRes.json();
         const meUser = meData?.user;
 
-        const isCorpSelf = Boolean(meUser && meUser.role === "corp" && (!corpID || meUser.id === corpID));
+        const isCorpSelf = Boolean(meUser && isCorpRole(meUser.role) && (!corpID || meUser.id === corpID));
         const resolvedCorpID = corpID || meUser?.id || null;
 
         setCanUploadLogo(isCorpSelf);
@@ -70,35 +87,34 @@ export const CorporationProfilePage = () => {
           setCorporation(corpProfileData.data);
           hasProfileData = true;
         }
-
-
         if (meUser) {
-          const eventsRes = await fetch(`${API}/org/${meUser.id}/events`, {
-            credentials: "include",
-          });
-          const eventsData = await eventsRes.json();
+          if (isOrgRole(meUser.role) && resolvedCorpID) {
+            const generalMatchRes = await fetch(`${API}/matches/general/org/${meUser.id}`, {
+              credentials: "include",
+            });
+            const generalMatchData = await generalMatchRes.json();
 
-          if (eventsData.success && eventsData.data?.length > 0) {
-            for (const event of eventsData.data) {
-              const matchRes = await fetch(`${API}/matches/${event.id}`, {
-                credentials: "include",
-              });
-              const matchResData = await matchRes.json();
-              if (matchResData.success) {
-                const match = (matchResData.data || []).find(
-                  (m: { corporationID: string }) => m.corporationID === resolvedCorpID
-                );
-                if (match) {
-                  setCorporation({
-                    id: resolvedCorpID,
-                    name: match.corporation?.name || "Unknown",
-                    email: match.corporation?.email || "",
-                    details: match.corporation?.details || match.reasoning || "",
-                    category: match.corporation?.category || "General",
-                  });
-                  setMatchData({ score: match.score, reasoning: match.reasoning });
-                  break;
-                }
+            if (generalMatchData?.success) {
+              const match = (generalMatchData.data || []).find(
+                (m: GeneralOrgMatch) => m.corporationID === resolvedCorpID
+              );
+
+              if (match) {
+                setMatchData({ score: match.matchScore, reasoning: match.reasoning });
+              }
+            }
+          }
+
+          if (isCorpRole(meUser.role) && resolvedCorpID) {
+            const corpGeneralMatchRes = await fetch(`${API}/matches/general/corp/${resolvedCorpID}`, {
+              credentials: "include",
+            });
+            const corpGeneralMatchData = await corpGeneralMatchRes.json();
+
+            if (corpGeneralMatchData?.success) {
+              const bestMatch = (corpGeneralMatchData.data || [])[0] as GeneralCorpMatch | undefined;
+              if (bestMatch) {
+                setMatchData({ score: bestMatch.matchScore, reasoning: bestMatch.reasoning });
               }
             }
           }
@@ -203,12 +219,6 @@ export const CorporationProfilePage = () => {
       year: "numeric",
     });
 
-  const sponsorshipProfile = {
-    hq: "N/A",
-    avgFunding: "N/A",
-    prefTimeline: "N/A",
-  };
-
   if (loading) {
     return (
       <div className="flex min-h-screen bg-[#f8fafc] font-roboto">
@@ -297,12 +307,6 @@ export const CorporationProfilePage = () => {
                     <span className="inline-flex items-center rounded-lg bg-blue-50 border border-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
                       {corporation?.category || "General"}
                     </span>
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-green-50 border border-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      Verified Sponsor
-                    </span>
                   </div>
 
                   <h1 className="text-2xl font-bold text-gray-900 mb-4">
@@ -325,38 +329,11 @@ export const CorporationProfilePage = () => {
 
               <div className="rounded-2xl bg-white border border-gray-100 p-5 shadow-sm">
                 <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
-                  Sponsorship Profile
+                  AI Score Reasoning
                 </h4>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-2 text-sm text-gray-500">
-                      <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      HQ
-                    </span>
-                    <span className="text-sm font-semibold text-gray-900">{sponsorshipProfile.hq}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-2 text-sm text-gray-500">
-                      <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      Avg. Funding
-                    </span>
-                    <span className="text-sm font-semibold text-gray-900">{sponsorshipProfile.avgFunding}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-2 text-sm text-gray-500">
-                      <svg className="w-4 h-4 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                      Pref. Timeline
-                    </span>
-                    <span className="text-sm font-semibold text-gray-900">{sponsorshipProfile.prefTimeline}</span>
-                  </div>
-                </div>
+                <p className="text-sm leading-relaxed text-gray-600">
+                  {matchData?.reasoning || "No score reasoning available yet. Generate matches to get AI explanation."}
+                </p>
               </div>
             </div>
           </div>
