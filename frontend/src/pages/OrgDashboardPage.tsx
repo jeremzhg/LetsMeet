@@ -91,6 +91,7 @@ export const OrgDashboardPage = () => {
     Record<string, { value: string; label: string }[]>
   >({});
   const [loading, setLoading] = useState(true);
+  const [appliedPartnershipKeys, setAppliedPartnershipKeys] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -148,12 +149,22 @@ export const OrgDashboardPage = () => {
         const partnersRes = await fetch(`${API}/partners`, { credentials: "include" });
         const partnersData = await partnersRes.json();
         if (partnersData.success) {
+          const allPartners = partnersData.data || [];
+
+          setAppliedPartnershipKeys(
+            new Set(
+              allPartners
+                .filter((p: Partner) => Boolean(p.eventID && p.corporationID))
+                .map((p: Partner) => `${p.eventID}:${p.corporationID}`)
+            )
+          );
+
           setIncomingOffers(
-            (partnersData.data || []).filter((p: Partner) => p.status === "pending")
+            allPartners.filter((p: Partner) => p.status === "pending")
           );
 
           const uniqueEventIDs = Array.from(
-            new Set((partnersData.data || []).map((p: Partner) => p.eventID).filter(Boolean))
+            new Set(allPartners.map((p: Partner) => p.eventID).filter(Boolean))
           ) as string[];
 
           const packageEntries = await Promise.all(
@@ -285,6 +296,13 @@ export const OrgDashboardPage = () => {
         credentials: "include",
         body: JSON.stringify({ eventID, corporationID }),
       });
+
+      setAppliedPartnershipKeys((prev) => {
+        const next = new Set(prev);
+        next.add(`${eventID}:${corporationID}`);
+        return next;
+      });
+
       setRecommendedSponsors((prev) =>
         prev.filter((s) => s.corporationID !== corporationID)
       );
@@ -313,6 +331,19 @@ export const OrgDashboardPage = () => {
 
     return selected?.label || offer.package?.title || "Selected package";
   };
+
+  const getEventTitleById = (eventID: string) => {
+    const event = events.find((item) => item.id === eventID);
+    return event?.title || "Unknown Event";
+  };
+
+  const isPartnershipApplied = (eventID: string, corporationID: string) => {
+    return appliedPartnershipKeys.has(`${eventID}:${corporationID}`);
+  };
+
+  const visibleRecommendedSponsors = recommendedSponsors.filter(
+    (sponsor) => !isPartnershipApplied(sponsor.eventID, sponsor.corporationID)
+  );
 
   const shouldIgnoreCardNavigation = (target: EventTarget | null) => {
     if (!(target instanceof HTMLElement)) return false;
@@ -566,13 +597,13 @@ export const OrgDashboardPage = () => {
                       <div key={i} className="h-32 rounded-xl bg-gray-50 animate-pulse" />
                     ))}
                   </div>
-                ) : recommendedSponsors.length === 0 ? (
+                ) : visibleRecommendedSponsors.length === 0 ? (
                   <p className="text-sm text-gray-400 text-center py-4">
                     Create an event to get sponsor recommendations
                   </p>
                 ) : (
                   <div className="space-y-4">
-                    {recommendedSponsors.map((sponsor) => (
+                    {visibleRecommendedSponsors.map((sponsor) => (
                       <div
                         key={sponsor.corporationID}
                         className="sponsor-card rounded-xl border border-gray-100 p-4 hover:border-blue-100 hover:shadow-sm transition-all duration-300"
@@ -590,6 +621,9 @@ export const OrgDashboardPage = () => {
                                 {sponsor.corporation.email}
                               </p>
                             )}
+                            <p className="text-xs text-gray-500 mt-1 truncate">
+                              Event: {getEventTitleById(sponsor.eventID)}
+                            </p>
                           </div>
                           <ScoreBadge score={sponsor.score} size="sm" />
                         </div>
@@ -603,7 +637,7 @@ export const OrgDashboardPage = () => {
                               sponsor.eventID
                             )
                           }
-                          className="w-full py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all"
+                          className="w-full py-2 rounded-lg border border-gray-200 bg-white text-xs font-semibold text-gray-700 transition-all hover:bg-gray-50 hover:border-gray-300"
                         >
                           Request Partnership
                         </button>
