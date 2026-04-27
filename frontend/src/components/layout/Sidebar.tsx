@@ -1,10 +1,17 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
 interface NavItem {
   label: string;
   icon: React.ReactNode;
   path: string;
+}
+
+interface BottomItem {
+  label: string;
+  icon: React.ReactNode;
+  path?: string;
+  onClick?: () => void;
 }
 
 interface SidebarProps {
@@ -21,11 +28,6 @@ const DashboardIcon = () => (
 const EventsIcon = () => (
   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-  </svg>
-);
-const MatchesIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
   </svg>
 );
 const ForumIcon = () => (
@@ -78,7 +80,6 @@ const LogoutIcon = () => (
 const orgDashboardNav: NavItem[] = [
   { label: "Dashboard", icon: <DashboardIcon />, path: "/org/dashboard" },
   { label: "Events", icon: <EventsIcon />, path: "/org/events" },
-  { label: "Matches", icon: <MatchesIcon />, path: "/org/matches" },
   { label: "Forum", icon: <ForumIcon />, path: "/org/forum" },
   { label: "Inbox", icon: <InboxIcon />, path: "/org/inbox" },
 ];
@@ -93,6 +94,7 @@ const orgPartnershipsNav: NavItem[] = [
 
 export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
   const navItems = variant === "org-dashboard" ? orgDashboardNav : orgPartnershipsNav;
 
@@ -102,15 +104,31 @@ export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
     ? { title: "LetsMeet", subtitle: "Management Hub" }
     : { title: "Org Dashboard", subtitle: "Partnership Portal" };
 
-  const bottomLinks: NavItem[] = isOrgDashboard
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:3000/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Logout request failed", error);
+    } finally {
+      navigate("/login", { replace: true });
+    }
+  };
+
+  const bottomLinks: BottomItem[] = isOrgDashboard
     ? [
         { label: "Settings", icon: <SettingsIcon />, path: "/org/settings" },
         { label: "Support", icon: <SupportIcon />, path: "/org/support" },
+        { label: "Logout", icon: <LogoutIcon />, onClick: handleLogout },
       ]
     : [
         { label: "Help Center", icon: <SupportIcon />, path: "/org/help" },
-        { label: "Logout", icon: <LogoutIcon />, path: "/login" },
+        { label: "Logout", icon: <LogoutIcon />, onClick: handleLogout },
       ];
+
+  const footerPositionClass = ctaPosition === "top" ? "pt-4" : "mt-auto pt-4";
 
 
   return (
@@ -167,23 +185,42 @@ export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
         })}
       </nav>
 
-      <div className="mt-auto pt-4">
+      <div className={footerPositionClass}>
 
 
         <div className="flex flex-col gap-1">
-          {bottomLinks.map((item) => (
-            <Link
-              key={item.label}
-              to={item.path}
-              title={item.label}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700 ${
-                collapsed ? "justify-center" : ""
-              }`}
-            >
-              {item.icon}
-              {!collapsed && item.label}
-            </Link>
-          ))}
+          {bottomLinks.map((item) => {
+            const classes = `flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-gray-500 transition-colors hover:bg-gray-50 hover:text-gray-700 ${
+              collapsed ? "justify-center" : ""
+            }`;
+
+            if (item.onClick) {
+              return (
+                <button
+                  key={item.label}
+                  type="button"
+                  title={item.label}
+                  onClick={item.onClick}
+                  className={classes}
+                >
+                  {item.icon}
+                  {!collapsed && item.label}
+                </button>
+              );
+            }
+
+            return (
+              <Link
+                key={item.label}
+                to={item.path!}
+                title={item.label}
+                className={classes}
+              >
+                {item.icon}
+                {!collapsed && item.label}
+              </Link>
+            );
+          })}
         </div>
       </div>
     </aside>
