@@ -171,11 +171,20 @@ export const uploadCorpProfileImagePath = async (req: Request, res: Response) =>
 
 export const uploadCorpProfileImagePathById = async (req: Request, res: Response) => {
   try {
+    const user = req.user;
     const { id } = req.params;
     const file = req.file;
 
+    if (!user || user.role !== "corp") {
+      return res.status(403).json({ error: "forbidden" });
+    }
+
     if (!id) {
       return res.status(400).json({ error: "corporation id is required" });
+    }
+
+    if (user.id !== String(id)) {
+      return res.status(403).json({ error: "forbidden" });
     }
 
     if (!file) {
