@@ -55,6 +55,24 @@ interface MatchedCorp {
 
 const API = "http://localhost:3000";
 
+const getEventPriority = (status: string) => {
+  const normalized = status.toLowerCase();
+
+  if (normalized === "pending") return 0;
+  if (normalized === "ongoing" || normalized === "active") return 1;
+  if (normalized === "completed") return 3;
+  return 2;
+};
+
+const sortEventsByPriority = (eventList: OrgEvent[]) => {
+  return [...eventList].sort((a, b) => {
+    const priorityDiff = getEventPriority(a.status) - getEventPriority(b.status);
+    if (priorityDiff !== 0) return priorityDiff;
+
+    return new Date(a.date).getTime() - new Date(b.date).getTime();
+  });
+};
+
 /* ── Page Component ────────────────────────────────────────────── */
 export const OrgDashboardPage = () => {
   const [orgName, setOrgName] = useState("Organization");
@@ -83,24 +101,21 @@ export const OrgDashboardPage = () => {
     fetchUser();
   }, []);
 
-  /* Fetch events once we have userID */
   useEffect(() => {
     if (!userID) return;
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch org events
         const eventsRes = await fetch(`${API}/org/${userID}/events`, { credentials: "include" });
         const eventsData = await eventsRes.json();
         if (eventsData.success) {
-          setEvents(eventsData.data || []);
-          // Use org name from the first event's organization field if available
+          const prioritizedEvents = sortEventsByPriority(eventsData.data || []);
+          setEvents(prioritizedEvents);
           if (eventsData.data?.[0]?.organization?.name) {
             setOrgName(eventsData.data[0].organization.name);
           }
         }
 
-        // Fetch incoming partnership offers (pending ones for org)
         const partnersRes = await fetch(`${API}/partners`, { credentials: "include" });
         const partnersData = await partnersRes.json();
         if (partnersData.success) {
@@ -143,8 +158,8 @@ export const OrgDashboardPage = () => {
         }
 
         // Fetch recommended sponsors for the first active event
-        const activeEvent = (eventsData.data || []).find(
-          (e: OrgEvent) => e.status === "active" || e.status === "pending"
+        const activeEvent = sortEventsByPriority(eventsData.data || []).find(
+          (e: OrgEvent) => e.status === "pending" || e.status === "active" || e.status === "ongoing"
         );
         if (activeEvent) {
           const matchRes = await fetch(`${API}/matches/${activeEvent.id}`, {

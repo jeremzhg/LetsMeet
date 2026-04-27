@@ -5,7 +5,6 @@ import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusDropdown } from "../components/fields/StatusDropdown";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
 
-/* ── Types ─────────────────────────────────────────────────────── */
 interface EventDetail {
   id: string;
   title: string;
@@ -65,7 +64,6 @@ const API = "http://localhost:3000";
 
 type TabType = "matches" | "inbox";
 
-/* ── Page Component ────────────────────────────────────────────── */
 export const EventWorkspacePage = () => {
   const { id: eventID } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -88,7 +86,6 @@ export const EventWorkspacePage = () => {
     })),
   ];
 
-  /* Fetch event data */
   useEffect(() => {
     if (!eventID) return;
 
@@ -97,7 +94,6 @@ export const EventWorkspacePage = () => {
       setAccessDenied(false);
 
       try {
-        // Ensure user is an organization
         const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
         const meData = await meRes.json();
         const role = meData?.user?.role;
@@ -108,7 +104,6 @@ export const EventWorkspacePage = () => {
           return;
         }
 
-        // Ensure selected event belongs to current organization
         const orgEventsRes = await fetch(`${API}/org/${meData.user.id}/events`, {
           credentials: "include",
         });
@@ -122,14 +117,11 @@ export const EventWorkspacePage = () => {
           return;
         }
 
-        // Fetch event details
         const eventRes = await fetch(`${API}/org/events/${eventID}`, {
           credentials: "include",
         });
         const eventData = await eventRes.json();
         setEvent(eventData.data || eventData);
-
-        // Fetch AI matches
         const matchRes = await fetch(`${API}/matches/${eventID}`, {
           credentials: "include",
         });
@@ -138,7 +130,6 @@ export const EventWorkspacePage = () => {
           setMatches(matchData.data || []);
         }
 
-        // Fetch partners
         const partnerRes = await fetch(`${API}/org/events/${eventID}/partners`, {
           credentials: "include",
         });
@@ -156,7 +147,6 @@ export const EventWorkspacePage = () => {
     fetchData();
   }, [eventID, navigate]);
 
-  /* Force refresh matches */
   const handleRefreshMatches = async () => {
     if (!eventID) return;
     setRefreshing(true);
@@ -176,7 +166,6 @@ export const EventWorkspacePage = () => {
     }
   };
 
-  /* Send proposal */
   const handleSendProposal = async (corporationID: string) => {
     if (!eventID) return;
     setSendingProposal((prev) => new Set(prev).add(corporationID));
@@ -187,7 +176,6 @@ export const EventWorkspacePage = () => {
         credentials: "include",
         body: JSON.stringify({ eventID, corporationID }),
       });
-      // Refresh partners list
       const partnerRes = await fetch(`${API}/org/events/${eventID}/partners`, {
         credentials: "include",
       });
@@ -206,7 +194,6 @@ export const EventWorkspacePage = () => {
     }
   };
 
-  /* Update partner status */
   const handleUpdatePartnerStatus = async (corporationID: string, status: PartnerStatus) => {
     if (!eventID) return;
     setUpdatingPartnerStatus((prev) => new Set(prev).add(corporationID));
@@ -303,7 +290,6 @@ export const EventWorkspacePage = () => {
       year: "numeric",
     });
 
-  /* Group partners by status for inbox pipeline */
   const partnerGroups: Record<string, Partner[]> = {
     pending: partners.filter((p) => p.status === "pending"),
     accepted: partners.filter((p) => p.status === "accepted"),
@@ -316,7 +302,6 @@ export const EventWorkspacePage = () => {
     { key: "rejected", label: "REJECTED", color: "bg-red-400" },
   ];
 
-  /* Check if corp already has a partnership */
   const hasPartnership = (corporationID: string) =>
     partners.some((p) => p.corporationID === corporationID);
 
@@ -366,7 +351,6 @@ export const EventWorkspacePage = () => {
       <main className="flex-1 overflow-y-auto">
         <TopNavbar />
         <div className="max-w-6xl mx-auto px-8 py-8">
-          {/* ── Event Header ─────────────────────────────────── */}
           <div className="mb-6">
             <div className="flex items-center gap-3 text-sm text-gray-500 mb-2">
               <div className="flex items-center gap-1.5">
@@ -412,7 +396,6 @@ export const EventWorkspacePage = () => {
             </div>
           </div>
 
-          {/* ── Tab Navigation ────────────────────────────────── */}
           <div className="flex items-center gap-6 border-b border-gray-200 mb-8">
             <button
               onClick={() => setActiveTab("matches")}
@@ -442,9 +425,7 @@ export const EventWorkspacePage = () => {
             </button>
           </div>
 
-          {/* ── Tab Content ───────────────────────────────────── */}
           {activeTab === "matches" ? (
-            /* ── AI Matches Tab ───────────────────────────────── */
             <div>
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-xl font-bold text-gray-900">Recommended Partners</h2>
@@ -492,7 +473,6 @@ export const EventWorkspacePage = () => {
                         key={match.corporationID}
                         className="match-card rounded-2xl bg-white border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300"
                       >
-                        {/* Header */}
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
                             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white text-sm font-bold shadow-sm">
@@ -515,7 +495,6 @@ export const EventWorkspacePage = () => {
                           <ScoreBadge score={match.score} size="md" />
                         </div>
 
-                        {/* AI Reasoning */}
                         <div className="rounded-xl bg-slate-50 border border-slate-100 p-4 mb-4">
                           <div className="flex items-center gap-1.5 mb-2">
                             <div className="w-2 h-2 rounded-full bg-blue-500" />
@@ -528,7 +507,6 @@ export const EventWorkspacePage = () => {
                           </p>
                         </div>
 
-                        {/* Actions */}
                         <div className="flex items-center justify-between">
                           <span className="inline-flex items-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-600">
                             {alreadyPartnered ? "Proposal Sent" : "Ready to Pitch"}
@@ -564,7 +542,6 @@ export const EventWorkspacePage = () => {
               )}
             </div>
           ) : (
-            /* ── Partnership Inbox Tab ─────────────────────────── */
             <div>
               <div className="mb-5">
                 <h2 className="text-xl font-bold text-gray-900">Partnership Inbox</h2>
@@ -576,7 +553,6 @@ export const EventWorkspacePage = () => {
                   const columnPartners = partnerGroups[col.key] || [];
                   return (
                     <div key={col.key} className="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
-                      {/* Column header */}
                       <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
                         <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                           {col.label}
@@ -585,8 +561,6 @@ export const EventWorkspacePage = () => {
                           {columnPartners.length}
                         </span>
                       </div>
-
-                      {/* Cards */}
                       <div className="p-3 space-y-3 min-h-[200px]">
                         {columnPartners.length === 0 ? (
                           <p className="text-xs text-gray-400 text-center py-6">No partners</p>

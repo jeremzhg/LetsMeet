@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
@@ -10,7 +10,6 @@ import eventTechImg from "../assets/images/event-tech-conference.png";
 import eventNetworkImg from "../assets/images/event-networking.png";
 import eventCareerImg from "../assets/images/event-career-fair.png";
 
-/* ── Types ─────────────────────────────────────────────────────── */
 interface EventPackage {
   id: string;
   title: string;
@@ -49,19 +48,41 @@ interface EventCardData extends OrgEvent {
 }
 
 type EventStatus = "pending" | "active" | "completed";
+type EventFilterStatus = "all" | "pending" | "ongoing" | "completed";
 
 const API = "http://localhost:3000";
 
+const getEventPriority = (status: string) => {
+  const normalized = status.toLowerCase();
+
+  if (normalized === "pending") return 0;
+  if (normalized === "ongoing" || normalized === "active") return 1;
+  if (normalized === "completed") return 3;
+  return 2;
+};
+
+const matchesStatusFilter = (status: string, filter: EventFilterStatus) => {
+  if (filter === "all") return true;
+
+  const normalized = status.toLowerCase();
+
+  if (filter === "ongoing") {
+    return normalized === "active" || normalized === "ongoing";
+  }
+
+  return normalized === filter;
+};
+
 const eventImages = [eventTechImg, eventNetworkImg, eventCareerImg];
 
-/* ── Page Component ────────────────────────────────────────────── */
 export const OrgAllEventsPage = () => {
   const [userID, setUserID] = useState<string | null>(null);
   const [events, setEvents] = useState<EventCardData[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<EventFilterStatus>("all");
   const [loading, setLoading] = useState(true);
   const [updatingEventStatus, setUpdatingEventStatus] = useState<Set<string>>(new Set());
 
-  /* Fetch user info */
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -85,7 +106,6 @@ export const OrgAllEventsPage = () => {
     fetchUser();
   }, []);
 
-  /* Fetch events + sponsorship data */
   useEffect(() => {
     if (!userID) return;
     const fetchEvents = async () => {
@@ -101,7 +121,6 @@ export const OrgAllEventsPage = () => {
             let securedAmount = 0;
 
             try {
-              // Get partners for secured calculation
               const partnersRes = await fetch(`${API}/org/events/${event.id}/partners`, {
                 credentials: "include",
               });
@@ -112,7 +131,6 @@ export const OrgAllEventsPage = () => {
                   .reduce((sum: number, p: PartnerInfo) => sum + (p.package?.cost || 0), 0);
               }
             } catch {
-              /* proceed with zero amounts */
             }
 
             const progress = targetAmount > 0 ? Math.round((securedAmount / targetAmount) * 100) : 0;
@@ -136,6 +154,34 @@ export const OrgAllEventsPage = () => {
       day: "2-digit",
       year: "numeric",
     });
+
+  const visibleEvents = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+
+    return [...events]
+      .filter((event) => matchesStatusFilter(event.status, statusFilter))
+      .filter((event) => {
+        if (!normalizedQuery) return true;
+
+        const searchableText = [
+          event.title,
+          event.details,
+          event.city,
+          event.country,
+          event.venue || "",
+        ]
+          .join(" ")
+          .toLowerCase();
+
+        return searchableText.includes(normalizedQuery);
+      })
+      .sort((a, b) => {
+        const priorityDiff = getEventPriority(a.status) - getEventPriority(b.status);
+        if (priorityDiff !== 0) return priorityDiff;
+
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      });
+  }, [events, searchQuery, statusFilter]);
 
   const handleUpdateEventStatus = async (eventID: string, status: EventStatus) => {
     setUpdatingEventStatus((prev) => new Set(prev).add(eventID));
@@ -166,7 +212,6 @@ export const OrgAllEventsPage = () => {
     }
   };
 
-  /* ── Render ──────────────────────────────────────────────────── */
   return (
     <div className="flex min-h-screen bg-[#f8fafc] font-roboto">
       <Sidebar variant="org-dashboard" ctaPosition="top" />
@@ -174,7 +219,6 @@ export const OrgAllEventsPage = () => {
       <main className="flex-1 overflow-y-auto">
         <TopNavbar />
         <div className="max-w-6xl mx-auto px-8 py-8">
-          {/* Page Header */}
           <div className="flex items-start justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Events</h1>
@@ -194,7 +238,55 @@ export const OrgAllEventsPage = () => {
             </Link>
           </div>
 
-          {/* Event Cards Grid */}
+          <div className="mb-6 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div className="relative w-full md:max-w-md">
+                <svg
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search events by title, details, city, country, or venue"
+                  className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-700 outline-none transition-colors focus:border-blue-300"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {([
+                  { value: "all", label: "All" },
+                  { value: "pending", label: "Pending" },
+                  { value: "ongoing", label: "Ongoing" },
+                  { value: "completed", label: "Completed" },
+                ] as { value: EventFilterStatus; label: string }[]).map((option) => {
+                  const active = statusFilter === option.value;
+
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => setStatusFilter(option.value)}
+                      className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${
+                        active
+                          ? "border-blue-600 bg-blue-600 text-white"
+                          : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:text-gray-800"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
           {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[1, 2, 3].map((i) => (
@@ -217,14 +309,18 @@ export const OrgAllEventsPage = () => {
                 + Create New Event
               </Link>
             </div>
+          ) : visibleEvents.length === 0 ? (
+            <div className="rounded-2xl bg-white border border-gray-100 p-12 text-center">
+              <h3 className="text-lg font-bold text-gray-900 mb-1">No matching events</h3>
+              <p className="text-gray-500">Try adjusting your search or filter.</p>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {events.map((event, index) => (
+              {visibleEvents.map((event, index) => (
                 <div
                   key={event.id}
                   className="event-card group rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:border-blue-100 transition-all duration-300"
                 >
-                  {/* Image header */}
                   <div className="relative h-40 overflow-hidden">
                     <img
                       src={toAbsoluteImageUrl(event.imagePath) || eventImages[index % eventImages.length]}
@@ -235,7 +331,6 @@ export const OrgAllEventsPage = () => {
                     <div className="absolute top-3 right-3">
                       <StatusPill status={event.status} />
                     </div>
-                    {/* Colored top accent */}
                     <div className={`absolute top-0 left-0 right-0 h-1 ${
                       event.status === "active" ? "bg-green-500"
                         : event.status === "completed" ? "bg-gray-400"
@@ -243,7 +338,6 @@ export const OrgAllEventsPage = () => {
                     }`} />
                   </div>
 
-                  {/* Card body */}
                   <div className="p-5">
                     <h3 className="font-bold text-gray-900 text-lg mb-3 group-hover:text-blue-700 transition-colors leading-tight">
                       {event.title}
@@ -271,7 +365,6 @@ export const OrgAllEventsPage = () => {
                       </div>
                     </div>
 
-                    {/* Sponsorship progress */}
                     {event.status === "completed" ? (
                       <div className="pt-3 border-t border-gray-100">
                         <div className="flex items-center justify-between">
