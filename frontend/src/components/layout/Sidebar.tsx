@@ -133,7 +133,7 @@ export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
 
   return (
     <aside
-      className={`sidebar-container flex min-h-screen shrink-0 flex-col border-r border-gray-100 bg-white py-6 transition-all duration-200 ${
+      className={`sidebar-container sticky top-0 flex h-screen shrink-0 flex-col overflow-y-auto border-r border-gray-100 bg-white py-6 transition-all duration-200 ${
         collapsed ? "w-20 px-3" : "w-56 px-4"
       }`}
     >
