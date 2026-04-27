@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusDropdown } from "../components/fields/StatusDropdown";
@@ -81,6 +81,7 @@ const sortEventsByPriority = (eventList: OrgEvent[]) => {
 };
 
 export const OrgDashboardPage = () => {
+  const navigate = useNavigate();
   const [orgName, setOrgName] = useState("Organization");
   const [userID, setUserID] = useState<string | null>(null);
   const [events, setEvents] = useState<OrgEvent[]>([]);
@@ -313,6 +314,17 @@ export const OrgDashboardPage = () => {
     return selected?.label || offer.package?.title || "Selected package";
   };
 
+  const shouldIgnoreCardNavigation = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+
+    return Boolean(target.closest("a, button, input, select, textarea, label"));
+  };
+
+  const handleCardNavigation = (eventID: string, target: EventTarget | null) => {
+    if (shouldIgnoreCardNavigation(target)) return;
+    navigate(`/org/events/${eventID}`);
+  };
+
   return (
     <div className="flex min-h-screen bg-[#f8fafc] font-roboto">
       <Sidebar variant="org-dashboard" />
@@ -368,6 +380,14 @@ export const OrgDashboardPage = () => {
                     {events.slice(0, 4).map((event) => (
                       <div
                         key={event.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => handleCardNavigation(event.id, e.target)}
+                        onKeyDown={(e) => {
+                          if (e.key !== "Enter" && e.key !== " ") return;
+                          e.preventDefault();
+                          handleCardNavigation(event.id, e.target);
+                        }}
                         className="event-card group rounded-2xl bg-white border border-gray-100 p-5 shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300 relative overflow-hidden"
                       >
                         <div className={`absolute left-0 top-0 bottom-0 w-1 ${

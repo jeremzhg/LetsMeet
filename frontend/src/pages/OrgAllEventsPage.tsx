@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusDropdown } from "../components/fields/StatusDropdown";
@@ -76,6 +76,7 @@ const matchesStatusFilter = (status: string, filter: EventFilterStatus) => {
 const eventImages = [eventTechImg, eventNetworkImg, eventCareerImg];
 
 export const OrgAllEventsPage = () => {
+  const navigate = useNavigate();
   const [userID, setUserID] = useState<string | null>(null);
   const [events, setEvents] = useState<EventCardData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -212,6 +213,17 @@ export const OrgAllEventsPage = () => {
     }
   };
 
+  const shouldIgnoreCardNavigation = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+
+    return Boolean(target.closest("a, button, input, select, textarea, label"));
+  };
+
+  const handleCardNavigation = (eventID: string, target: EventTarget | null) => {
+    if (shouldIgnoreCardNavigation(target)) return;
+    navigate(`/org/events/${eventID}`);
+  };
+
   return (
     <div className="flex min-h-screen bg-[#f8fafc] font-roboto">
       <Sidebar variant="org-dashboard" ctaPosition="top" />
@@ -319,6 +331,14 @@ export const OrgAllEventsPage = () => {
               {visibleEvents.map((event, index) => (
                 <div
                   key={event.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => handleCardNavigation(event.id, e.target)}
+                  onKeyDown={(e) => {
+                    if (e.key !== "Enter" && e.key !== " ") return;
+                    e.preventDefault();
+                    handleCardNavigation(event.id, e.target);
+                  }}
                   className="event-card group rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:border-blue-100 transition-all duration-300"
                 >
                   <div className="relative h-40 overflow-hidden">
