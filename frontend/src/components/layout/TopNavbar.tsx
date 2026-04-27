@@ -58,6 +58,12 @@ export const TopNavbar = () => {
     };
 
     loadNavbarUser();
+
+    window.addEventListener("profile-image-updated", loadNavbarUser);
+
+    return () => {
+      window.removeEventListener("profile-image-updated", loadNavbarUser);
+    };
   }, []);
 
   const profilePath = useMemo(

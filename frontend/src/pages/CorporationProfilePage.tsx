@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
@@ -45,10 +45,12 @@ const API = "http://localhost:3000";
 
 export const CorporationProfilePage = () => {
   const { id: corpID } = useParams<{ id: string }>();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [corporation, setCorporation] = useState<CorporationDetails | null>(null);
   const [matchData, setMatchData] = useState<MatchData | null>(null);
   const [pastEvents, setPastEvents] = useState<PastEvent[]>([]);
   const [corpImageFile, setCorpImageFile] = useState<File | null>(null);
+  const [corpLogoPreview, setCorpLogoPreview] = useState<string | null>(null);
   const [uploadingCorpImage, setUploadingCorpImage] = useState(false);
   const [loading, setLoading] = useState(true);
   const [canUploadLogo, setCanUploadLogo] = useState(false);
@@ -204,14 +206,13 @@ export const CorporationProfilePage = () => {
   };
 
   const handleSaveCorpImagePath = async () => {
-    if (!profileCorpID || !corpImageFile || !canUploadLogo) return;
+    if (!corpImageFile || !canUploadLogo) return;
     setUploadingCorpImage(true);
     try {
       const formData = new FormData();
       formData.append("image", corpImageFile);
 
-      const endpoint = corpID ? `${API}/corp/${profileCorpID}/image` : `${API}/corp/profile/image`;
-      const res = await fetch(endpoint, {
+      const res = await fetch(`${API}/corp/profile/image`, {
         method: "POST",
         credentials: "include",
         body: formData,
@@ -224,7 +225,9 @@ export const CorporationProfilePage = () => {
       setCorporation((prev) =>
         prev ? { ...prev, imagePath: data.data?.imagePath || prev.imagePath } : prev
       );
+      window.dispatchEvent(new Event("profile-image-updated"));
       setCorpImageFile(null);
+      setCorpLogoPreview(null);
     } catch (err) {
       console.error("Failed to upload corporation image path:", err);
       alert(err instanceof Error ? err.message : "Unable to save corporation image path");
@@ -242,6 +245,7 @@ export const CorporationProfilePage = () => {
 
   const backPath = canUploadLogo ? "/corp/dashboard" : "/org/corporations";
   const backLabel = canUploadLogo ? "Back to Dashboard" : "Back to Discover";
+  const isCorpSelfView = canUploadLogo;
 
   if (loading) {
     return (
@@ -251,6 +255,159 @@ export const CorporationProfilePage = () => {
           <div className="flex flex-col items-center gap-3">
             <div className="w-10 h-10 border-3 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
             <p className="text-gray-400 text-sm">Loading profile…</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (isCorpSelfView) {
+    return (
+      <div className="flex min-h-screen bg-[#f8fafc] font-roboto">
+        <Sidebar variant="org-partnerships" />
+
+        <main className="flex-1 overflow-y-auto">
+          <TopNavbar />
+          <div className="max-w-4xl mx-auto px-8 py-8">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Edit Profile</h1>
+              <p className="text-gray-500">
+                Update your corporation details to improve AI matching with organization opportunities.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 mb-6 shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Identity</h2>
+
+              <div className="flex items-start gap-6 mb-8">
+                <div className="relative shrink-0">
+                  <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gray-100 shadow-sm">
+                    {corpLogoPreview || corporation?.imagePath ? (
+                      <img
+                        src={corpLogoPreview || toAbsoluteImageUrl(corporation?.imagePath) || ""}
+                        alt="Corporation logo"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900 text-lg font-bold text-white">
+                        {getInitials(corporation?.name || corporation?.email, 3)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shadow-sm">
+                    <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold text-gray-700 mb-1">Corporation Logo</p>
+                  <p className="text-xs text-gray-400 mb-3">
+                    Upload an image file. Stored name is generated automatically.
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all"
+                    >
+                      Choose Image
+                    </button>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setCorpImageFile(file);
+                        setCorpLogoPreview(file ? URL.createObjectURL(file) : null);
+                      }}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleSaveCorpImagePath}
+                      disabled={uploadingCorpImage || !corpImageFile}
+                      className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-60"
+                    >
+                      {uploadingCorpImage ? "Saving..." : "Upload"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 gap-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Corporation Name</label>
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Enter your corporation name"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                  <input
+                    type="text"
+                    value={editCategory}
+                    onChange={(e) => setEditCategory(e.target.value)}
+                    placeholder="Enter your corporation category"
+                    className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-gray-200 bg-white p-8 mb-8 shadow-sm">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Matching Profile Details</h2>
+              <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                This information is analyzed by our AI to suggest the best organization and event opportunities.
+              </p>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Corporation Details</label>
+                <textarea
+                  value={editDetails}
+                  onChange={(e) => setEditDetails(e.target.value)}
+                  rows={8}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-4 text-sm text-gray-700 leading-relaxed outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
+                  placeholder="Describe your brand, audience, sponsorship goals, and ideal event/organization partnerships..."
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-4 pb-8">
+              <Link
+                to="/corp/dashboard"
+                className="px-6 py-3 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+              >
+                Cancel
+              </Link>
+              <button
+                type="button"
+                onClick={handleSaveProfile}
+                disabled={savingProfile}
+                className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#1a2e4a] text-white text-sm font-semibold hover:bg-[#243b5e] transition-all shadow-md disabled:opacity-60"
+              >
+                {savingProfile ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    </svg>
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </main>
       </div>
@@ -279,18 +436,30 @@ export const CorporationProfilePage = () => {
             <div className="flex items-center gap-3">
               {canUploadLogo && (
                 <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-2 py-1.5">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                  >
+                    Choose Image
+                  </button>
                   <input
+                    ref={fileInputRef}
                     type="file"
                     accept="image/*"
-                    onChange={(e) => setCorpImageFile(e.target.files?.[0] || null)}
-                    className="w-60 bg-transparent px-1 text-xs text-gray-700 placeholder-gray-400 outline-none"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      setCorpImageFile(file);
+                      setCorpLogoPreview(file ? URL.createObjectURL(file) : null);
+                    }}
+                    className="hidden"
                   />
                   <button
                     onClick={handleSaveCorpImagePath}
                     disabled={uploadingCorpImage || !corpImageFile}
                     className="rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60"
                   >
-                    {uploadingCorpImage ? "Uploading..." : "Upload Logo"}
+                    {uploadingCorpImage ? "Saving..." : "Upload"}
                   </button>
                 </div>
               )}
@@ -301,9 +470,9 @@ export const CorporationProfilePage = () => {
             <div className="flex-1 rounded-2xl bg-white border border-gray-100 p-8 shadow-sm">
               <div className="flex items-start gap-6">
                 <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shrink-0 shadow-lg overflow-hidden">
-                  {corporation?.imagePath ? (
+                  {corpLogoPreview || corporation?.imagePath ? (
                     <img
-                      src={toAbsoluteImageUrl(corporation.imagePath) || ""}
+                      src={corpLogoPreview || toAbsoluteImageUrl(corporation?.imagePath) || ""}
                       alt={`${corporation.name} logo`}
                       className="h-full w-full object-cover"
                     />
@@ -393,7 +562,7 @@ export const CorporationProfilePage = () => {
                       <p className="text-sm font-medium text-gray-700">
                         {corporation?.email || "No contact email available"}
                       </p>
-                      {corporation?.email && (
+                      {corporation?.email && !canUploadLogo && (
                         <a
                           href={`mailto:${corporation.email}`}
                           className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50"
