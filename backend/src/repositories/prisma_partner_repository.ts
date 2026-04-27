@@ -32,6 +32,13 @@ async function getPartnersByCorporationId(corporationID: string) {
     include: {
       event: {
         include: {
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
           packages: {
             select: {
               id: true,
