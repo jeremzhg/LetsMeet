@@ -99,6 +99,45 @@ export const getCorpProfile = async (req: Request, res: Response) => {
   }
 };
 
+export const updateCorpProfile = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user || user.role !== "corp") {
+      return res.status(403).json({ error: "forbidden" });
+    }
+
+    const { name, details, category } = req.body;
+    if (!name || !details || !category) {
+      return res.status(400).json({ error: "name, details, and category are required" });
+    }
+
+    const updatedCorp = await CorpRepo.updateCorpById(user.id, {
+      name: String(name),
+      details: String(details),
+      category: String(category),
+    });
+
+    const imagePath = await getEntityImagePath("corporations", updatedCorp.id);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        id: updatedCorp.id,
+        name: updatedCorp.name,
+        email: updatedCorp.email,
+        details: updatedCorp.details,
+        category: updatedCorp.category,
+        imagePath,
+      },
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return res.status(409).json({ error: error.message });
+    }
+    return res.status(500).json({ error: "internal server error" });
+  }
+};
+
 export const uploadCorpProfileImagePath = async (req: Request, res: Response) => {
   try {
     const user = req.user;

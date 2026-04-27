@@ -46,6 +46,32 @@ async function getMatchScoreByEventID(eventID: string) {
   });
 }
 
+async function getMatchScoresByCorporationID(corporationID: string) {
+  return await prisma.matchScore.findMany({
+    where: { corporationID },
+    include: {
+      event: {
+        include: {
+          organization: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          packages: true,
+          _count: {
+            select: { partners: true },
+          },
+        },
+      },
+    },
+    orderBy: {
+      score: "desc",
+    },
+  });
+}
+
 async function upsertGeneralMatchScore(
   corporationID: string,
   organizationID: string,
@@ -114,6 +140,7 @@ async function getGeneralMatchScoresByCorporationID(corporationID: string) {
 export {
   upsertMatchScore,
   getMatchScoreByEventID,
+  getMatchScoresByCorporationID,
   upsertGeneralMatchScore,
   getGeneralMatchScoresByOrganizationID,
   getGeneralMatchScoresByCorporationID,
