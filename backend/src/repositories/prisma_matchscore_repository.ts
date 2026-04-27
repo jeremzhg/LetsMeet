@@ -1,4 +1,4 @@
-import { MatchScore } from "../generated/prisma/client";
+import { GeneralMatchScore, MatchScore } from "../generated/prisma/client";
 import { prisma } from "../configs/db";
 
 async function upsertMatchScore(
@@ -46,4 +46,72 @@ async function getMatchScoreByEventID(eventID: string) {
   });
 }
 
-export { upsertMatchScore, getMatchScoreByEventID };
+async function upsertGeneralMatchScore(
+  corporationID: string,
+  organizationID: string,
+  matchScore: number
+): Promise<GeneralMatchScore> {
+  return await prisma.generalMatchScore.upsert({
+    where: {
+      corporationID_organizationID: {
+        corporationID,
+        organizationID,
+      },
+    },
+    update: {
+      matchScore,
+    },
+    create: {
+      corporationID,
+      organizationID,
+      matchScore,
+    },
+  });
+}
+
+async function getGeneralMatchScoresByOrganizationID(organizationID: string) {
+  return await prisma.generalMatchScore.findMany({
+    where: { organizationID },
+    include: {
+      corporation: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          details: true,
+          category: true,
+        },
+      },
+    },
+    orderBy: {
+      matchScore: "desc",
+    },
+  });
+}
+
+async function getGeneralMatchScoresByCorporationID(corporationID: string) {
+  return await prisma.generalMatchScore.findMany({
+    where: { corporationID },
+    include: {
+      organization: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          details: true,
+        },
+      },
+    },
+    orderBy: {
+      matchScore: "desc",
+    },
+  });
+}
+
+export {
+  upsertMatchScore,
+  getMatchScoreByEventID,
+  upsertGeneralMatchScore,
+  getGeneralMatchScoresByOrganizationID,
+  getGeneralMatchScoresByCorporationID,
+};

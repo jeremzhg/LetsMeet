@@ -19,6 +19,7 @@ model Organization {
   name           String
   hashedPassword String
   details        String
+  generalMatchScore GeneralMatchScore[]
   events         Events[]
 }
 
@@ -32,6 +33,7 @@ model Corporation {
   isClaimed      Boolean    @default(false)
   partners       Partners[]
   matchScores    MatchScore[]
+  generalMatchScore GeneralMatchScore[]
 }
 
 model Events {
@@ -85,4 +87,14 @@ model MatchScore {
   corporation Corporation @relation(fields: [corporationID], references: [id])
 
   @@id([eventID, corporationID])
+}
+
+model GeneralMatchScore{
+  corporationID String
+  organizationID String
+  matchScore Float
+  corporation Corporation @relation(fields: [corporationID], references: [id])
+  organization Organization @relation(fields: [organizationID], references: [id])
+
+  @@id([corporationID, organizationID])
 }
