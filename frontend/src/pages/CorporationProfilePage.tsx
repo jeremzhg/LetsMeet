@@ -203,7 +203,6 @@ export const CorporationProfilePage = () => {
       year: "numeric",
     });
 
-  /* Mock sponsorship profile data — no API exists for these fields */
   const sponsorshipProfile = {
     hq: "N/A",
     avgFunding: "N/A",
@@ -232,7 +231,6 @@ export const CorporationProfilePage = () => {
         <TopNavbar />
 
         <div className="max-w-5xl mx-auto px-8 py-6">
-          {/* ── Back + Actions ──────────────────────────────── */}
           <div className="flex items-center justify-between mb-6">
             <Link
               to="/org/corporations"
@@ -277,12 +275,9 @@ export const CorporationProfilePage = () => {
             </div>
           </div>
 
-          {/* ── Main Profile Card + Side Panels ────────────── */}
           <div className="flex gap-6 mb-8">
-            {/* Profile card */}
             <div className="flex-1 rounded-2xl bg-white border border-gray-100 p-8 shadow-sm">
               <div className="flex items-start gap-6">
-                {/* Logo */}
                 <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shrink-0 shadow-lg overflow-hidden">
                   {corporation?.imagePath ? (
                     <img
@@ -298,7 +293,6 @@ export const CorporationProfilePage = () => {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  {/* Tags */}
                   <div className="flex items-center gap-2 mb-2">
                     <span className="inline-flex items-center rounded-lg bg-blue-50 border border-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">
                       {corporation?.category || "General"}
@@ -322,16 +316,13 @@ export const CorporationProfilePage = () => {
               </div>
             </div>
 
-            {/* Right side panels */}
             <div className="w-64 shrink-0 flex flex-col gap-4">
-              {/* AI Fit Score */}
               <div className="rounded-2xl bg-white border border-gray-100 p-5 shadow-sm flex flex-col items-center">
                 <h4 className="text-sm font-bold text-gray-900 mb-1">AI Fit Score</h4>
                 <p className="text-xs text-gray-400 mb-3">Based on your org's profile</p>
                 <ScoreBadge score={matchData?.score ?? 0} size="lg" />
               </div>
 
-              {/* Sponsorship Profile */}
               <div className="rounded-2xl bg-white border border-gray-100 p-5 shadow-sm">
                 <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
                   Sponsorship Profile
@@ -370,7 +361,6 @@ export const CorporationProfilePage = () => {
             </div>
           </div>
 
-          {/* ── Past Event History ──────────────────────────── */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-xl font-bold text-gray-900">Past Event History</h2>
@@ -399,7 +389,6 @@ export const CorporationProfilePage = () => {
                     key={event.id}
                     className="history-card group rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300"
                   >
-                    {/* Image placeholder */}
                     <div className="h-32 bg-gradient-to-br from-slate-700 via-blue-900 to-slate-800 relative">
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                       <div className="absolute top-3 right-3">

@@ -6,7 +6,6 @@ import { StatusDropdown } from "../components/fields/StatusDropdown";
 import { StatusPill } from "../components/shared/StatusPill";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
 
-/* ── Types ─────────────────────────────────────────────────────── */
 interface OrgEvent {
   id: string;
   title: string;
@@ -16,6 +15,9 @@ interface OrgEvent {
   targetSponsorValue?: number;
   status: string;
   _count?: { partners: number };
+  targetAmount?: number;
+  securedAmount?: number;
+  progress?: number;
 }
 
 interface EventPackage {
@@ -53,6 +55,11 @@ interface MatchedCorp {
   };
 }
 
+interface EventPartner {
+  status: string;
+  package?: { cost?: number } | null;
+}
+
 const API = "http://localhost:3000";
 
 const getEventPriority = (status: string) => {
@@ -73,7 +80,6 @@ const sortEventsByPriority = (eventList: OrgEvent[]) => {
   });
 };
 
-/* ── Page Component ────────────────────────────────────────────── */
 export const OrgDashboardPage = () => {
   const [orgName, setOrgName] = useState("Organization");
   const [userID, setUserID] = useState<string | null>(null);
@@ -85,7 +91,6 @@ export const OrgDashboardPage = () => {
   >({});
   const [loading, setLoading] = useState(true);
 
-  /* Fetch user info */
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -110,7 +115,30 @@ export const OrgDashboardPage = () => {
         const eventsData = await eventsRes.json();
         if (eventsData.success) {
           const prioritizedEvents = sortEventsByPriority(eventsData.data || []);
-          setEvents(prioritizedEvents);
+          const enrichedEvents = await Promise.all(
+            prioritizedEvents.map(async (event: OrgEvent) => {
+              const targetAmount = Math.max(0, Number(event.targetSponsorValue || 0));
+              let securedAmount = 0;
+
+              try {
+                const partnersRes = await fetch(`${API}/org/events/${event.id}/partners`, {
+                  credentials: "include",
+                });
+                const partnersData = await partnersRes.json();
+                if (partnersData.success) {
+                  securedAmount = (partnersData.data || [])
+                    .filter((p: EventPartner) => p.status === "accepted" && p.package)
+                    .reduce((sum: number, p: EventPartner) => sum + Number(p.package?.cost || 0), 0);
+                }
+              } catch {
+              }
+
+              const progress = targetAmount > 0 ? Math.round((securedAmount / targetAmount) * 100) : 0;
+              return { ...event, targetAmount, securedAmount, progress };
+            })
+          );
+
+          setEvents(enrichedEvents);
           if (eventsData.data?.[0]?.organization?.name) {
             setOrgName(eventsData.data[0].organization.name);
           }
@@ -157,7 +185,6 @@ export const OrgDashboardPage = () => {
           setOfferPackageOptions(Object.fromEntries(packageEntries));
         }
 
-        // Fetch recommended sponsors for the first active event
         const activeEvent = sortEventsByPriority(eventsData.data || []).find(
           (e: OrgEvent) => e.status === "pending" || e.status === "active" || e.status === "ongoing"
         );
@@ -179,7 +206,6 @@ export const OrgDashboardPage = () => {
     fetchData();
   }, [userID]);
 
-  /* Partnership actions */
   const handlePartnerAction = async (
     eventID: string,
     corporationID: string,
@@ -258,7 +284,6 @@ export const OrgDashboardPage = () => {
         credentials: "include",
         body: JSON.stringify({ eventID, corporationID }),
       });
-      // Remove from recommended after requesting
       setRecommendedSponsors((prev) =>
         prev.filter((s) => s.corporationID !== corporationID)
       );
@@ -288,7 +313,6 @@ export const OrgDashboardPage = () => {
     return selected?.label || offer.package?.title || "Selected package";
   };
 
-  /* ── Render ──────────────────────────────────────────────────── */
   return (
     <div className="flex min-h-screen bg-[#f8fafc] font-roboto">
       <Sidebar variant="org-dashboard" />
@@ -296,7 +320,6 @@ export const OrgDashboardPage = () => {
       <main className="flex-1 overflow-y-auto">
         <TopNavbar />
         <div className="max-w-6xl mx-auto px-8 py-8">
-          {/* Header */}
           <div className="flex items-start justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 leading-tight">
@@ -315,9 +338,7 @@ export const OrgDashboardPage = () => {
           </div>
 
           <div className="flex gap-6">
-            {/* Left column */}
             <div className="flex-1 min-w-0">
-              {/* ── Your Event Overview ─────────────────────── */}
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-4">
                   <h2 className="text-xl font-bold text-gray-900">Your Event Overview</h2>
@@ -349,7 +370,6 @@ export const OrgDashboardPage = () => {
                         key={event.id}
                         className="event-card group rounded-2xl bg-white border border-gray-100 p-5 shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300 relative overflow-hidden"
                       >
-                        {/* Left accent */}
                         <div className={`absolute left-0 top-0 bottom-0 w-1 ${
                           event.status === "active" ? "bg-green-500" : "bg-blue-400"
                         }`} />
@@ -371,22 +391,36 @@ export const OrgDashboardPage = () => {
                           {truncate(event.details || "", 80)}
                         </p>
 
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-1">
-                            {/* Partner avatar placeholders */}
-                            {(event._count?.partners ?? 0) > 0 && (
-                              <>
-                                <div className="w-7 h-7 rounded-full bg-gray-300 border-2 border-white" />
-                                <div className="w-7 h-7 rounded-full bg-gray-400 border-2 border-white -ml-2" />
-                                {(event._count?.partners ?? 0) > 2 && (
-                                  <span className="ml-1 text-xs font-semibold text-blue-600 bg-blue-50 rounded-full px-2 py-0.5">
-                                    +{(event._count?.partners ?? 0) - 2}
-                                  </span>
-                                )}
-                              </>
-                            )}
+                        <div className="pt-3 border-t border-gray-100">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-semibold text-gray-500">Sponsorship Progress</span>
+                            <span className={`text-xs font-bold ${
+                              (event.progress || 0) >= 75 ? "text-blue-600"
+                                : (event.progress || 0) >= 40 ? "text-amber-500"
+                                : "text-gray-500"
+                            }`}>
+                              {event.progress || 0}%
+                            </span>
                           </div>
-                          {(event._count?.partners ?? 0) > 0 ? (
+                          <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden mb-2">
+                            <div
+                              className={`h-full rounded-full transition-all duration-700 ${
+                                (event.progress || 0) >= 75 ? "bg-blue-600"
+                                  : (event.progress || 0) >= 40 ? "bg-amber-400"
+                                  : "bg-gray-300"
+                              }`}
+                              style={{ width: `${Math.min(event.progress || 0, 100)}%` }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between text-xs mb-3">
+                            <span className="text-gray-400">
+                              Target: ${(event.targetAmount || 0).toLocaleString()}
+                            </span>
+                            <span className="font-semibold text-green-600">
+                              Secured: ${(event.securedAmount || 0).toLocaleString()}
+                            </span>
+                          </div>
+                          <div className="flex justify-end">
                             <Link
                               to={`/org/events/${event.id}`}
                               className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1"
@@ -396,9 +430,7 @@ export const OrgDashboardPage = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                               </svg>
                             </Link>
-                          ) : (
-                            <span className="text-sm text-gray-400">Needs Sponsors</span>
-                          )}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -406,7 +438,6 @@ export const OrgDashboardPage = () => {
                 )}
               </div>
 
-              {/* ── Incoming Sponsorship Offers ─────────────── */}
               <div>
                 <h2 className="text-xl font-bold text-gray-900 mb-4">
                   Ongoing Sponsorship Offers
@@ -432,7 +463,6 @@ export const OrgDashboardPage = () => {
                         key={`${offer.eventID}-${offer.corporationID}`}
                         className="offer-card flex items-start gap-4 rounded-2xl bg-white border border-gray-100 p-4 shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300"
                       >
-                        {/* Corp logo placeholder */}
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm">
                           CORP
                         </div>
@@ -497,7 +527,6 @@ export const OrgDashboardPage = () => {
               </div>
             </div>
 
-            {/* ── Right column — Recommended Sponsors ──────── */}
             <div className="w-72 shrink-0">
               <div className="rounded-2xl bg-white border border-gray-100 p-5 shadow-sm sticky top-8">
                 <div className="flex items-center justify-between mb-5">

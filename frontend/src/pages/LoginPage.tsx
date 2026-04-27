@@ -17,7 +17,6 @@ export const LoginPage = () => {
     setErrorMessage("");
 
     try {
-      // Memanggil API login dari folder backend sesuai role
       const response = await fetch(`http://localhost:3000/auth/${loginType}/login`, {
         method: "POST",
         headers: {
@@ -31,7 +30,6 @@ export const LoginPage = () => {
 
       if (response.ok) {
         console.log("Berhasil login:", data);
-        // opsional: localStorage.setItem("token", data.token);
         navigate("/home");
       } else {
         setErrorMessage(data.message || "Login failed. Please check your credentials.");
@@ -62,7 +60,6 @@ export const LoginPage = () => {
             className="flex flex-col rounded-[2.5rem] bg-white p-8 sm:p-10 shadow-sm"
           >
             <div className="relative mb-6 flex w-full rounded-full bg-gray-200 p-1">
-              {/* Sliding background */}
               <div
                 className={`absolute left-1 top-1 bottom-1 w-[calc(50%-0.25rem)] rounded-full bg-[#2563EB] shadow-md transition-transform duration-300 ease-in-out ${
                   loginType === "corp" ? "translate-x-full" : "translate-x-0"

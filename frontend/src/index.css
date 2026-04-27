@@ -28,9 +28,6 @@
   background-image: url("./assets/images/signup-bg.png");
 }
 
-/* ── Dashboard Utilities ─────────────────────────────────────── */
-
-/* Line clamp for truncating multi-line text */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -45,13 +42,11 @@
   overflow: hidden;
 }
 
-/* Sidebar active indicator animation */
 .sidebar-nav-item {
   position: relative;
   transition: all 0.2s ease;
 }
 
-/* Card entrance animation */
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -90,7 +85,6 @@
 .match-card:nth-child(3) { animation-delay: 0.1s; }
 .match-card:nth-child(4) { animation-delay: 0.15s; }
 
-/* Scrollbar styling for dashboard */
 main::-webkit-scrollbar {
   width: 6px;
 }
