@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { getInitials, toAbsoluteImageUrl } from "../../utils/image";
 
 interface NavItem {
   label: string;
@@ -17,6 +18,15 @@ interface BottomItem {
 interface SidebarProps {
   variant: "org-dashboard" | "org-partnerships";
   ctaPosition?: "top" | "bottom";
+}
+
+type UserRole = "org" | "corp";
+
+interface SidebarUser {
+  id: string;
+  role: UserRole;
+  name: string;
+  imagePath?: string | null;
 }
 
 
@@ -50,16 +60,6 @@ const CorporationsIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
   </svg>
 );
-const MessagesIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0l-8 5-8-5" />
-  </svg>
-);
-const AnalyticsIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-  </svg>
-);
 const SettingsIcon = () => (
   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.573-1.066z" />
@@ -77,33 +77,71 @@ const LogoutIcon = () => (
   </svg>
 );
 
-const orgDashboardNav: NavItem[] = [
+const orgNav: NavItem[] = [
   { label: "Dashboard", icon: <DashboardIcon />, path: "/org/dashboard" },
   { label: "Events", icon: <EventsIcon />, path: "/org/events" },
   { label: "Corporations", icon: <CorporationsIcon />, path: "/org/corporations" },
-  { label: "Forum", icon: <ForumIcon />, path: "/org/forum" },
   { label: "Inbox", icon: <InboxIcon />, path: "/org/inbox" },
 ];
 
-const orgPartnershipsNav: NavItem[] = [
-  { label: "Profile", icon: <ProfileIcon />, path: "/org/profile" },
-  { label: "Your Events", icon: <EventsIcon />, path: "/org/events" },
-  { label: "Corporations", icon: <CorporationsIcon />, path: "/org/corporations" },
-  { label: "Messages", icon: <MessagesIcon />, path: "/org/messages" },
-  { label: "Analytics", icon: <AnalyticsIcon />, path: "/org/analytics" },
+const corpNav: NavItem[] = [
+  { label: "Dashboard", icon: <DashboardIcon />, path: "/corp/profile" },
+  { label: "Forum", icon: <ForumIcon />, path: "/events" },
+  { label: "Inbox", icon: <InboxIcon />, path: "/partners" },
 ];
 
 export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
-  const navItems = variant === "org-dashboard" ? orgDashboardNav : orgPartnershipsNav;
+  const [user, setUser] = useState<SidebarUser | null>(null);
 
-  const isOrgDashboard = variant === "org-dashboard";
+  useEffect(() => {
+    const loadSidebarUser = async () => {
+      try {
+        const meRes = await fetch("http://localhost:3000/auth/me", {
+          credentials: "include",
+        });
+        const meData = await meRes.json();
+        const meUser = meData?.user;
 
-  const logo = isOrgDashboard
-    ? { title: "LetsMeet", subtitle: "Management Hub" }
-    : { title: "Org Dashboard", subtitle: "Partnership Portal" };
+        if (!meUser?.id || !meUser?.role) {
+          setUser(null);
+          return;
+        }
+
+        const isOrg = meUser.role === "organization" || meUser.role === "org";
+        const role: UserRole = isOrg ? "org" : "corp";
+
+        const profileEndpoint = isOrg
+          ? "http://localhost:3000/org/profile"
+          : "http://localhost:3000/corp/profile";
+
+        const profileRes = await fetch(profileEndpoint, {
+          credentials: "include",
+        });
+        const profileData = await profileRes.json();
+        const profile = profileData?.data;
+
+        setUser({
+          id: meUser.id,
+          role,
+          name: profile?.name || meUser.email || "User",
+          imagePath: profile?.imagePath || null,
+        });
+      } catch (error) {
+        console.error("Failed to load sidebar user", error);
+      }
+    };
+
+    loadSidebarUser();
+  }, []);
+
+  const currentRole: UserRole = user?.role || (variant === "org-dashboard" ? "org" : "org");
+  const navItems = currentRole === "org" ? orgNav : corpNav;
+  const profilePath = currentRole === "org" ? "/org/profile" : "/corp/profile";
+
+  const displayName = user?.name || "LetsMeet User";
 
   const handleLogout = async () => {
     try {
@@ -118,13 +156,15 @@ export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
     }
   };
 
-  const bottomLinks: BottomItem[] = isOrgDashboard
+  const bottomLinks: BottomItem[] = currentRole === "org"
     ? [
+        { label: "Profile", icon: <ProfileIcon />, path: "/org/profile" },
         { label: "Settings", icon: <SettingsIcon />, path: "/org/settings" },
         { label: "Support", icon: <SupportIcon />, path: "/org/support" },
         { label: "Logout", icon: <LogoutIcon />, onClick: handleLogout },
       ]
     : [
+        { label: "Profile", icon: <ProfileIcon />, path: "/corp/profile" },
         { label: "Help Center", icon: <SupportIcon />, path: "/org/help" },
         { label: "Logout", icon: <LogoutIcon />, onClick: handleLogout },
       ];
@@ -138,16 +178,51 @@ export const Sidebar = ({ variant, ctaPosition = "bottom" }: SidebarProps) => {
         collapsed ? "w-20 px-3" : "w-56 px-4"
       }`}
     >
-      <div className={`mb-6 flex items-center ${collapsed ? "justify-center" : "gap-2.5 px-2"}`}>
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-blue-400 flex items-center justify-center shadow-md">
-          <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-          </svg>
-        </div>
-        {!collapsed && (
-          <div>
-            <h2 className="text-sm font-bold text-blue-700 leading-tight">{logo.title}</h2>
-            <p className="text-[10px] text-gray-400 leading-tight">{logo.subtitle}</p>
+      <div className={`mb-4 ${collapsed ? "flex justify-center" : "px-1"}`}>
+        {collapsed ? (
+          <div className="h-10 w-10 overflow-hidden rounded-xl bg-slate-200">
+            {user?.imagePath ? (
+              <img
+                src={toAbsoluteImageUrl(user.imagePath) || ""}
+                alt={displayName}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900 text-xs font-bold text-white">
+                {getInitials(displayName, 2)}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-gray-100 bg-gray-50 p-2.5">
+            <div className="flex items-center gap-2.5">
+              <div className="h-10 w-10 overflow-hidden rounded-xl bg-slate-200">
+                {user?.imagePath ? (
+                  <img
+                    src={toAbsoluteImageUrl(user.imagePath) || ""}
+                    alt={displayName}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900 text-xs font-bold text-white">
+                    {getInitials(displayName, 2)}
+                  </div>
+                )}
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold text-gray-800">{displayName}</p>
+                <Link
+                  to={profilePath}
+                  className="inline-flex items-center gap-1 text-[11px] font-semibold text-blue-700 hover:text-blue-800"
+                >
+                  Edit Profile
+                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </Link>
+              </div>
+            </div>
           </div>
         )}
       </div>
