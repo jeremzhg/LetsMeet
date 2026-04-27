@@ -80,6 +80,7 @@ const LogoutIcon = () => (
 const orgDashboardNav: NavItem[] = [
   { label: "Dashboard", icon: <DashboardIcon />, path: "/org/dashboard" },
   { label: "Events", icon: <EventsIcon />, path: "/org/events" },
+  { label: "Corporations", icon: <CorporationsIcon />, path: "/org/corporations" },
   { label: "Forum", icon: <ForumIcon />, path: "/org/forum" },
   { label: "Inbox", icon: <InboxIcon />, path: "/org/inbox" },
 ];
