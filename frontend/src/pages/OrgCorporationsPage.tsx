@@ -19,7 +19,7 @@ interface GeneralMatchItem {
   };
 }
 
-type ScoreFilter = "all" | "high" | "medium" | "explore";
+type ScoreFilter = "all" | "high" | "medium" | "low";
 
 const API = "http://localhost:3000";
 
@@ -220,7 +220,7 @@ export const OrgCorporationsPage = () => {
                   { value: "all", label: "All Scores" },
                   { value: "high", label: "High Fit" },
                   { value: "medium", label: "Good Fit" },
-                  { value: "explore", label: "Explore" },
+                  { value: "low", label: "Low Fit" },
                 ] as { value: ScoreFilter; label: string }[]).map((option) => {
                   const active = scoreFilter === option.value;
 
