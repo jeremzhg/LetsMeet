@@ -1,73 +1,155 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { getInitials, toAbsoluteImageUrl } from "../../utils/image";
 
-const navItems = [
-  { label: "Dashboard", path: "/org/dashboard" },
-  { label: "Your Events", path: "/org/events" },
-  { label: "Corporations", path: "/org/corporations" },
-  { label: "Event Forum", path: "/org/forum" },
-  { label: "Profile", path: "/org/profile" },
-];
+type NavbarRole = "organization" | "corporation";
+
+interface NavbarUser {
+  id: string;
+  role: NavbarRole;
+  name: string;
+  email: string;
+  imagePath?: string | null;
+}
 
 export const TopNavbar = () => {
-  const location = useLocation();
+  const [user, setUser] = useState<NavbarUser | null>(null);
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const loadNavbarUser = async () => {
+      try {
+        const meRes = await fetch("http://localhost:3000/auth/me", {
+          credentials: "include",
+        });
+        const meData = await meRes.json();
+        const meUser = meData?.user;
+
+        if (!meUser?.id || !meUser?.role) {
+          setUser(null);
+          return;
+        }
+
+        const role: NavbarRole = meUser.role === "organization" || meUser.role === "org"
+          ? "organization"
+          : "corporation";
+
+        const profileEndpoint = role === "organization"
+          ? "http://localhost:3000/org/profile"
+          : "http://localhost:3000/corp/profile";
+
+        const profileRes = await fetch(profileEndpoint, {
+          credentials: "include",
+        });
+        const profileData = await profileRes.json();
+        const profile = profileData?.data;
+
+        setUser({
+          id: meUser.id,
+          role,
+          name: profile?.name || meUser.email || "LetsMeet User",
+          email: profile?.email || meUser.email || "",
+          imagePath: profile?.imagePath || null,
+        });
+      } catch (error) {
+        console.error("Failed to load navbar user", error);
+      }
+    };
+
+    loadNavbarUser();
+  }, []);
+
+  const profilePath = useMemo(
+    () => (user?.role === "corporation" ? "/corp/profile" : "/org/profile"),
+    [user?.role]
+  );
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!dropdownRef.current) return;
+      if (event.target instanceof Node && !dropdownRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    };
+
+    if (open) {
+      window.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      window.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
+
+  const displayName = user?.name || "LetsMeet User";
+  const displayEmail = user?.email || "";
 
   return (
     <header className="sticky top-0 z-10 border-b border-gray-100 bg-white px-6 py-3 md:px-8">
       <div className="flex items-center justify-between gap-4">
-        <div className="flex min-w-0 items-center gap-5">
-          <span className="shrink-0 text-sm font-bold tracking-wide text-blue-700">LetsMeet Portal</span>
-          <nav className="hidden items-center gap-1 sm:flex">
-            {navItems.map((item) => {
-              const isActive =
-                location.pathname === item.path ||
-                (item.path !== "/org/events" && location.pathname.startsWith(item.path + "/")) ||
-                (item.path === "/org/events" && location.pathname.startsWith("/org/events"));
+        <span className="shrink-0 text-base font-bold tracking-wide text-blue-700">LetsMeet</span>
 
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-                    isActive
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-        </div>
-
-        <div className="flex items-center gap-2">
+        <div className="relative" ref={dropdownRef}>
           <button
             type="button"
-            title="Notifications"
-            className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
+            onClick={() => setOpen((prev) => !prev)}
+            className="group flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-2.5 py-1.5 transition-colors hover:border-gray-300 hover:bg-gray-50"
+            aria-expanded={open}
+            aria-haspopup="menu"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-              />
+            <div className="h-9 w-9 overflow-hidden rounded-lg bg-slate-200">
+              {user?.imagePath ? (
+                <img
+                  src={toAbsoluteImageUrl(user.imagePath) || ""}
+                  alt={displayName}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900 text-xs font-bold text-white">
+                  {getInitials(displayName, 2)}
+                </div>
+              )}
+            </div>
+            <div className="min-w-0 text-left">
+              <p className="truncate text-sm font-semibold text-gray-800 group-hover:text-gray-900">{displayName}</p>
+            </div>
+            <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
-          <button
-            type="button"
-            title="Help"
-            className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700"
-          >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </button>
-          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-teal-400 to-blue-500 shadow-sm" />
+
+          {open && (
+            <div className="absolute right-0 mt-2 w-64 rounded-xl border border-gray-200 bg-white p-3 shadow-lg" role="menu">
+              <div className="flex items-center gap-3 rounded-lg bg-gray-50 p-2.5">
+                <div className="h-10 w-10 overflow-hidden rounded-lg bg-slate-200">
+                  {user?.imagePath ? (
+                    <img
+                      src={toAbsoluteImageUrl(user.imagePath) || ""}
+                      alt={displayName}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-700 to-slate-900 text-xs font-bold text-white">
+                      {getInitials(displayName, 2)}
+                    </div>
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold text-gray-800">{displayName}</p>
+                  <p className="truncate text-xs text-gray-500">{displayEmail}</p>
+                </div>
+              </div>
+
+              <Link
+                to={profilePath}
+                onClick={() => setOpen(false)}
+                className="mt-2 block rounded-lg border border-gray-200 px-3 py-2 text-center text-sm font-semibold text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50"
+              >
+                Edit
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </header>
