@@ -473,7 +473,7 @@ export const CorporationProfilePage = () => {
                   {corpLogoPreview || corporation?.imagePath ? (
                     <img
                       src={corpLogoPreview || toAbsoluteImageUrl(corporation?.imagePath) || ""}
-                      alt={`${corporation.name} logo`}
+                      alt={`${corporation?.name || "Corporation"} logo`}
                       className="h-full w-full object-cover"
                     />
                   ) : (

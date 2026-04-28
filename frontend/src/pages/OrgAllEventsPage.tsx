@@ -48,7 +48,6 @@ interface EventCardData extends OrgEvent {
 }
 
 type EventStatus = "pending" | "active" | "completed";
-type EventFilterStatus = "all" | "pending" | "ongoing" | "completed";
 
 const API = "http://localhost:3000";
 
@@ -61,16 +60,11 @@ const getEventPriority = (status: string) => {
   return 2;
 };
 
-const matchesStatusFilter = (status: string, filter: EventFilterStatus) => {
-  if (filter === "all") return true;
-
+const normalizeEventStatus = (status: string) => {
   const normalized = status.toLowerCase();
-
-  if (filter === "ongoing") {
-    return normalized === "active" || normalized === "ongoing";
-  }
-
-  return normalized === filter;
+  if (normalized === "active" || normalized === "ongoing") return "ongoing";
+  if (normalized === "completed") return "completed";
+  return "pending";
 };
 
 const eventImages = [eventTechImg, eventNetworkImg, eventCareerImg];
@@ -80,7 +74,6 @@ export const OrgAllEventsPage = () => {
   const [userID, setUserID] = useState<string | null>(null);
   const [events, setEvents] = useState<EventCardData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<EventFilterStatus>("all");
   const [loading, setLoading] = useState(true);
   const [updatingEventStatus, setUpdatingEventStatus] = useState<Set<string>>(new Set());
 
@@ -156,11 +149,9 @@ export const OrgAllEventsPage = () => {
       year: "numeric",
     });
 
-  const visibleEvents = useMemo(() => {
+  const groupedEvents = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
-
-    return [...events]
-      .filter((event) => matchesStatusFilter(event.status, statusFilter))
+    const filtered = [...events]
       .filter((event) => {
         if (!normalizedQuery) return true;
 
@@ -182,7 +173,16 @@ export const OrgAllEventsPage = () => {
 
         return new Date(a.date).getTime() - new Date(b.date).getTime();
       });
-  }, [events, searchQuery, statusFilter]);
+
+    return {
+      pending: filtered.filter((event) => normalizeEventStatus(event.status) === "pending"),
+      ongoing: filtered.filter((event) => normalizeEventStatus(event.status) === "ongoing"),
+      completed: filtered.filter((event) => normalizeEventStatus(event.status) === "completed"),
+    };
+  }, [events, searchQuery]);
+
+  const totalFilteredCount =
+    groupedEvents.pending.length + groupedEvents.ongoing.length + groupedEvents.completed.length;
 
   const handleUpdateEventStatus = async (eventID: string, status: EventStatus) => {
     setUpdatingEventStatus((prev) => new Set(prev).add(eventID));
@@ -270,32 +270,6 @@ export const OrgAllEventsPage = () => {
                   className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-3 text-sm text-gray-700 outline-none transition-colors focus:border-blue-300"
                 />
               </div>
-
-              <div className="flex flex-wrap gap-2">
-                {([
-                  { value: "all", label: "All" },
-                  { value: "pending", label: "Pending" },
-                  { value: "ongoing", label: "Ongoing" },
-                  { value: "completed", label: "Completed" },
-                ] as { value: EventFilterStatus; label: string }[]).map((option) => {
-                  const active = statusFilter === option.value;
-
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      onClick={() => setStatusFilter(option.value)}
-                      className={`rounded-full border px-3 py-1.5 text-sm font-semibold transition-colors ${
-                        active
-                          ? "border-blue-600 bg-blue-600 text-white"
-                          : "border-gray-200 bg-white text-gray-600 hover:border-gray-300 hover:text-gray-800"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
-              </div>
             </div>
           </div>
 
@@ -321,145 +295,174 @@ export const OrgAllEventsPage = () => {
                 + Create New Event
               </Link>
             </div>
-          ) : visibleEvents.length === 0 ? (
+          ) : totalFilteredCount === 0 ? (
             <div className="rounded-2xl bg-white border border-gray-100 p-12 text-center">
               <h3 className="text-lg font-bold text-gray-900 mb-1">No matching events</h3>
-              <p className="text-gray-500">Try adjusting your search or filter.</p>
+              <p className="text-gray-500">Try adjusting your search.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {visibleEvents.map((event, index) => (
-                <div
-                  key={event.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={(e) => handleCardNavigation(event.id, e.target)}
-                  onKeyDown={(e) => {
-                    if (e.key !== "Enter" && e.key !== " ") return;
-                    e.preventDefault();
-                    handleCardNavigation(event.id, e.target);
-                  }}
-                  className="event-card group rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:border-blue-100 transition-all duration-300"
-                >
-                  <div className="relative h-40 overflow-hidden">
-                    <img
-                      src={toAbsoluteImageUrl(event.imagePath) || eventImages[index % eventImages.length]}
-                      alt={event.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-                    <div className="absolute top-3 right-3">
-                      <StatusPill status={event.status} />
-                    </div>
-                    <div className={`absolute top-0 left-0 right-0 h-1 ${
-                      event.status === "active" ? "bg-green-500"
-                        : event.status === "completed" ? "bg-gray-400"
-                        : "bg-amber-400"
-                    }`} />
-                  </div>
+            <div className="space-y-8">
+              {([
+                { key: "pending", label: "Pending" },
+                { key: "ongoing", label: "Ongoing" },
+                { key: "completed", label: "Completed" },
+              ] as { key: "pending" | "ongoing" | "completed"; label: string }[]).map(
+                (section) => {
+                  const sectionEvents = groupedEvents[section.key];
 
-                  <div className="p-5">
-                    <h3 className="font-bold text-gray-900 text-lg mb-3 group-hover:text-blue-700 transition-colors leading-tight">
-                      {event.title}
-                    </h3>
+                  return (
+                    <section key={section.key}>
+                      <div className="mb-4 flex items-center justify-between">
+                        <h2 className="text-xl font-bold text-gray-900">{section.label} Events</h2>
+                        <span className="text-sm text-gray-400">{sectionEvents.length} total</span>
+                      </div>
 
-                    <div className="space-y-1.5 mb-5">
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        {formatDate(event.date)}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        {event.city}{event.country ? `, ${event.country}` : ""}
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5V4H2v16h5m10 0v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7" />
-                        </svg>
-                        {event.expectedParticipants.toLocaleString()} participants
-                      </div>
-                    </div>
-
-                    {event.status === "completed" ? (
-                      <div className="pt-3 border-t border-gray-100">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-xs text-gray-400 mb-0.5">Final Goal Reached</p>
-                            <p className="text-sm font-bold text-gray-900">
-                              ${event.securedAmount.toLocaleString()} Raised
-                            </p>
-                          </div>
-                          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                            <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                            </svg>
-                          </div>
+                      {sectionEvents.length === 0 ? (
+                        <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-6 text-sm text-gray-500">
+                          No {section.label.toLowerCase()} events yet.
                         </div>
-                      </div>
-                    ) : (
-                      <div className="pt-3 border-t border-gray-100">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-semibold text-gray-500">Sponsorship Progress</span>
-                          <span className={`text-xs font-bold ${
-                            event.progress >= 75 ? "text-blue-600"
-                              : event.progress >= 40 ? "text-amber-500"
-                              : "text-gray-500"
-                          }`}>
-                            {event.progress}%
-                          </span>
-                        </div>
-                        <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden mb-2">
-                          <div
-                            className={`h-full rounded-full transition-all duration-700 ${
-                              event.progress >= 75 ? "bg-blue-600"
-                                : event.progress >= 40 ? "bg-amber-400"
-                                : "bg-gray-300"
-                            }`}
-                            style={{ width: `${Math.min(event.progress, 100)}%` }}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-gray-400">
-                            Target: ${event.targetAmount.toLocaleString()}
-                          </span>
-                          <span className="font-semibold text-green-600">
-                            Secured: ${event.securedAmount.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                      ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {sectionEvents.map((event, index) => (
+                            <div
+                              key={event.id}
+                              role="button"
+                              tabIndex={0}
+                              onClick={(e) => handleCardNavigation(event.id, e.target)}
+                              onKeyDown={(e) => {
+                                if (e.key !== "Enter" && e.key !== " ") return;
+                                e.preventDefault();
+                                handleCardNavigation(event.id, e.target);
+                              }}
+                              className="event-card group rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:border-blue-100 transition-all duration-300"
+                            >
+                              <div className="relative h-40 overflow-hidden">
+                                <img
+                                  src={
+                                    toAbsoluteImageUrl(event.imagePath) ||
+                                    eventImages[index % eventImages.length]
+                                  }
+                                  alt={event.title}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
+                                <div className="absolute top-3 right-3">
+                                  <StatusPill status={event.status} />
+                                </div>
+                                <div
+                                  className={`absolute top-0 left-0 right-0 h-1 ${
+                                    event.status === "active"
+                                      ? "bg-green-500"
+                                      : event.status === "completed"
+                                        ? "bg-gray-400"
+                                        : "bg-amber-400"
+                                  }`}
+                                />
+                              </div>
 
-                    <div className="mt-4 flex items-center justify-between gap-2 border-t border-gray-100 pt-3">
-                      <Link
-                        to={`/org/events/${event.id}`}
-                        className="inline-flex items-center gap-1 text-sm font-semibold text-blue-600 transition-colors hover:text-blue-700"
-                      >
-                        Open Workspace
-                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Link>
+                              <div className="p-5">
+                                <h3 className="font-bold text-gray-900 text-lg mb-3 group-hover:text-blue-700 transition-colors leading-tight">
+                                  {event.title}
+                                </h3>
 
-                      <StatusDropdown
-                        size="sm"
-                        value={event.status}
-                        disabled={updatingEventStatus.has(event.id)}
-                        onChange={(next) => handleUpdateEventStatus(event.id, next as EventStatus)}
-                        options={[
-                          { value: "pending", label: "Pending" },
-                          { value: "active", label: "Active" },
-                          { value: "completed", label: "Completed" },
-                        ]}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+                                <div className="space-y-1.5 mb-5">
+                                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                                    <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    {formatDate(event.date)}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                                    <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    {event.city}{event.country ? `, ${event.country}` : ""}
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                                    <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5V4H2v16h5m10 0v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6m10 0H7" />
+                                    </svg>
+                                    {event.expectedParticipants.toLocaleString()} participants
+                                  </div>
+                                </div>
+
+                                {event.status === "completed" ? (
+                                  <div className="pt-3 border-t border-gray-100">
+                                    <div className="flex items-center justify-between">
+                                      <div>
+                                        <p className="text-xs text-gray-400 mb-0.5">Final Goal Reached</p>
+                                        <p className="text-sm font-bold text-gray-900">
+                                          ${event.securedAmount.toLocaleString()} Raised
+                                        </p>
+                                      </div>
+                                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                                        <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                        </svg>
+                                      </div>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="pt-3 border-t border-gray-100">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-xs font-semibold text-gray-500">Sponsorship Progress</span>
+                                      <span
+                                        className={`text-xs font-bold ${
+                                          event.progress >= 75
+                                            ? "text-blue-600"
+                                            : event.progress >= 40
+                                              ? "text-amber-500"
+                                              : "text-gray-500"
+                                        }`}
+                                      >
+                                        {event.progress}%
+                                      </span>
+                                    </div>
+                                    <div className="w-full h-2 rounded-full bg-gray-100 overflow-hidden mb-2">
+                                      <div
+                                        className={`h-full rounded-full transition-all duration-700 ${
+                                          event.progress >= 75
+                                            ? "bg-blue-600"
+                                            : event.progress >= 40
+                                              ? "bg-amber-400"
+                                              : "bg-gray-300"
+                                        }`}
+                                        style={{ width: `${Math.min(event.progress, 100)}%` }}
+                                      />
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs">
+                                      <span className="text-gray-400">Secured</span>
+                                      <span className="font-semibold text-green-600">
+                                        ${event.securedAmount.toLocaleString()}
+                                      </span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                <div className="mt-4">
+                                  <StatusDropdown
+                                    value={event.status}
+                                    disabled={updatingEventStatus.has(event.id)}
+                                    onChange={(next) =>
+                                      handleUpdateEventStatus(event.id, next as EventStatus)
+                                    }
+                                    options={[
+                                      { value: "pending", label: "Pending" },
+                                      { value: "active", label: "Ongoing" },
+                                      { value: "completed", label: "Completed" },
+                                    ]}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </section>
+                  );
+                }
+              )}
             </div>
           )}
         </div>
