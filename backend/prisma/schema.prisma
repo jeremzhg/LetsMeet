@@ -82,7 +82,7 @@ model MatchScore {
   corporationID String
   score         Float
   reasoning     String? @db.Text
-
+  reasoning_corp String? @db.Text
   event       Events      @relation(fields: [eventID], references: [id])
   corporation Corporation @relation(fields: [corporationID], references: [id])
 

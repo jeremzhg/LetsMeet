@@ -5,7 +5,8 @@ async function upsertMatchScore(
   eventID: string,
   corporationID: string,
   score: number,
-  reasoning: string
+  reasoning: string,
+  reasoning_corp: string
 ): Promise<MatchScore> {
   return await prisma.matchScore.upsert({
     where: {
@@ -17,12 +18,14 @@ async function upsertMatchScore(
     update: {
       score,
       reasoning,
+      reasoning_corp,
     },
     create: {
       eventID,
       corporationID,
       score,
       reasoning,
+      reasoning_corp,
     },
   });
 }

@@ -35,6 +35,7 @@ async function matchingService(eventID: string, corporationID?: string) {
             corporationEmail: { type: SchemaType.STRING, description: "The email of the evaluated corporation" },
             score: { type: SchemaType.NUMBER, description: "Compatibility score 0-100" },
             reasoning: { type: SchemaType.STRING, description: "Short explanation for the score. Maximum of 10 words" },
+            reasoning_corp: { type: SchemaType.STRING, description: "Short explanation on what the corporation's likely perspective is. Maximum of 10 words" },
           },
         },
       },
@@ -87,7 +88,7 @@ async function matchingService(eventID: string, corporationID?: string) {
       - Evaluate each corporation provided.
       - Assign a fit score (0-100). High score = specific industry alignment.
       - Low score = generic or irrelevant alignment.
-      - Provide a 1-sentence reasoning. Maximum of 10 words.
+      - Provide a 1-sentence reasoning for the corporation and organization. Maximum of 10 words.
       - Return an evaluation for every corporation provided with its corresponding corporationID and Email.
     `;
 
@@ -99,8 +100,7 @@ async function matchingService(eventID: string, corporationID?: string) {
 
       for (const evalResult of evaluations) {
         if (!evalResult.corporationID) continue;
-        console.log(`Corp ${evalResult.corporationID} - Score: ${evalResult.score}, Reasoning: ${evalResult.reasoning}`);
-        await upsertMatchScore(event.id, evalResult.corporationID, evalResult.score, evalResult.reasoning);
+        await upsertMatchScore(event.id, evalResult.corporationID, evalResult.score, evalResult.reasoning,evalResult.reasoning_corp);
       }
     } catch (error) {
       console.error(`Error processing chunk ${i / chunkSize + 1}:`, error);
