@@ -6,7 +6,7 @@ import { upsertGeneralMatchScore } from "../repositories/prisma_matchscore_repos
 
 dotenv.config();
 
-const MODEL_NAME = "gemini-2.5-flash"; 
+const MODEL_NAME = "gemini-3-flash-preview"; 
 const API_KEY = process.env.GEMINI_API_KEY;
 
 if (!API_KEY) {
