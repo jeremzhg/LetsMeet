@@ -43,9 +43,32 @@ interface PastEvent {
 
 const API = "http://localhost:3000";
 
+const ToolbarButton = ({
+  command,
+  icon,
+  label,
+}: {
+  command: string;
+  icon: React.ReactNode;
+  label: string;
+}) => (
+  <button
+    type="button"
+    title={label}
+    onMouseDown={(e) => {
+      e.preventDefault();
+      document.execCommand(command, false);
+    }}
+    className="p-1.5 rounded-md hover:bg-gray-200 text-gray-600 transition-colors"
+  >
+    {icon}
+  </button>
+);
+
 export const CorporationProfilePage = () => {
   const { id: corpID } = useParams<{ id: string }>();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
   const [corporation, setCorporation] = useState<CorporationDetails | null>(null);
   const [matchData, setMatchData] = useState<MatchData | null>(null);
   const [pastEvents, setPastEvents] = useState<PastEvent[]>([]);
@@ -60,6 +83,7 @@ export const CorporationProfilePage = () => {
   const [editName, setEditName] = useState("");
   const [editCategory, setEditCategory] = useState("");
   const [editDetails, setEditDetails] = useState("");
+  const [initialLoaded, setInitialLoaded] = useState(false);
 
   const isCorpRole = (role?: string) => role === "corp" || role === "corporation";
   const isOrgRole = (role?: string) => role === "org" || role === "organization";
@@ -167,14 +191,21 @@ export const CorporationProfilePage = () => {
     setEditName(corporation?.name || "");
     setEditCategory(corporation?.category || "");
     setEditDetails(corporation?.details || "");
+    setInitialLoaded(true);
   }, [corporation]);
+
+  useEffect(() => {
+    if (initialLoaded && editorRef.current && editDetails) {
+      editorRef.current.innerHTML = editDetails;
+    }
+  }, [initialLoaded]);
 
   const handleSaveProfile = async () => {
     if (!canUploadLogo) return;
 
     const name = editName.trim();
     const category = editCategory.trim();
-    const details = editDetails.trim();
+    const details = editorRef.current?.innerHTML || editDetails.trim();
 
     if (!name || !category || !details) {
       alert("Name, category, and details are required.");
@@ -304,15 +335,17 @@ export const CorporationProfilePage = () => {
                 <div>
                   <p className="text-sm font-semibold text-gray-700 mb-1">Corporation Logo</p>
                   <p className="text-xs text-gray-400 mb-3">
-                    Upload an image file. Stored name is generated automatically.
+                    Recommended size: 400×400px. JPG, PNG, or GIF.
                   </p>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={() => {
+                        fileInputRef.current?.click();
+                      }}
                       className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all"
                     >
-                      Choose Image
+                      Upload New
                     </button>
                     <input
                       ref={fileInputRef}
@@ -320,24 +353,41 @@ export const CorporationProfilePage = () => {
                       accept="image/*"
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
-                        setCorpImageFile(file);
-                        setCorpLogoPreview(file ? URL.createObjectURL(file) : null);
+                        if (file) {
+                          setCorpImageFile(file);
+                          setCorpLogoPreview(URL.createObjectURL(file));
+                        }
                       }}
                       className="hidden"
                     />
                     <button
                       type="button"
-                      onClick={handleSaveCorpImagePath}
-                      disabled={uploadingCorpImage || !corpImageFile}
-                      className="px-4 py-2 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all disabled:opacity-60"
+                      onClick={() => {
+                        setCorpImageFile(null);
+                        setCorpLogoPreview(null);
+                        if (fileInputRef.current) {
+                          fileInputRef.current.value = "";
+                        }
+                      }}
+                      className="px-4 py-2 text-sm font-semibold text-red-500 hover:text-red-600 transition-colors"
                     >
-                      {uploadingCorpImage ? "Saving..." : "Upload"}
+                      Remove
                     </button>
+                    {corpImageFile && (
+                      <button
+                        type="button"
+                        onClick={handleSaveCorpImagePath}
+                        disabled={uploadingCorpImage}
+                        className="px-4 py-2 rounded-xl border border-blue-200 bg-blue-50 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-all disabled:opacity-60"
+                      >
+                        {uploadingCorpImage ? "Saving..." : "Save Logo"}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">Corporation Name</label>
                   <input
@@ -350,7 +400,7 @@ export const CorporationProfilePage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">Category</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Category / Focus Area</label>
                   <input
                     type="text"
                     value={editCategory}
@@ -363,20 +413,70 @@ export const CorporationProfilePage = () => {
             </div>
 
             <div className="rounded-2xl border border-gray-200 bg-white p-8 mb-8 shadow-sm">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Matching Profile Details</h2>
+              <div className="flex items-center gap-2 mb-4">
+                <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                <h2 className="text-xl font-bold text-gray-900">Matching Profile Details</h2>
+              </div>
               <p className="text-sm text-gray-500 mb-6 leading-relaxed">
-                This information is analyzed by our AI to suggest the best organization and event opportunities.
+                This information is analyzed by our AI to suggest the best organization and event
+                opportunities. Be detailed about your brand and goals.
               </p>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">Corporation Details</label>
-                <textarea
-                  value={editDetails}
-                  onChange={(e) => setEditDetails(e.target.value)}
-                  rows={8}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-4 text-sm text-gray-700 leading-relaxed outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
-                  placeholder="Describe your brand, audience, sponsorship goals, and ideal event/organization partnerships..."
-                />
+                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  Corporation Details & Mission
+                </label>
+                <div className="rounded-xl border border-gray-200 overflow-hidden focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+                  <div className="flex items-center gap-1 px-3 py-2 border-b border-gray-100 bg-gray-50">
+                    <ToolbarButton
+                      command="bold"
+                      label="Bold"
+                      icon={<span className="text-sm font-bold">B</span>}
+                    />
+                    <ToolbarButton
+                      command="italic"
+                      label="Italic"
+                      icon={<span className="text-sm italic">I</span>}
+                    />
+                    <ToolbarButton
+                      command="underline"
+                      label="Underline"
+                      icon={<span className="text-sm underline">U</span>}
+                    />
+                    <div className="w-px h-5 bg-gray-200 mx-1" />
+                    <ToolbarButton
+                      command="insertUnorderedList"
+                      label="Bullet list"
+                      icon={
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                        </svg>
+                      }
+                    />
+                    <ToolbarButton
+                      command="createLink"
+                      label="Insert link"
+                      icon={
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                        </svg>
+                      }
+                    />
+                  </div>
+
+                  <div
+                    ref={editorRef}
+                    contentEditable
+                    suppressContentEditableWarning
+                    className="min-h-[200px] px-4 py-4 text-sm text-gray-700 leading-relaxed focus:outline-none prose prose-sm max-w-none"
+                    style={{
+                      wordBreak: "break-word",
+                    }}
+                    data-placeholder="Describe your brand, audience, sponsorship goals, and ideal event/organization partnerships..."
+                  />
+                </div>
               </div>
             </div>
 
