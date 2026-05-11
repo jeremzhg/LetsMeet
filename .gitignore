@@ -24,3 +24,4 @@ dist-ssr
 *.sw?
 /frontend/context/
 /.github
+/.playwright-mcp
