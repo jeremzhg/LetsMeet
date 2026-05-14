@@ -41,7 +41,7 @@ interface PartnerItem {
 
 type PartnerStatusFilter = "all" | "pending" | "accepted" | "rejected";
 
-const API = "http://localhost:3000";
+import { API } from "../config";
 
 export const OrgInboxPage = () => {
   const navigate = useNavigate();

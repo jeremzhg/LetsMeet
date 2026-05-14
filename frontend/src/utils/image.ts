@@ -1,4 +1,6 @@
-const API_BASE = "http://localhost:3000";
+import { API } from "../config";
+
+const API_BASE = API;
 
 export const toAbsoluteImageUrl = (imagePath?: string | null): string | null => {
   if (!imagePath) return null;

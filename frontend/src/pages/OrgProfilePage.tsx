@@ -11,7 +11,7 @@ interface OrgProfile {
   logoUrl: string | null;
 }
 
-const API = "http://localhost:3000";
+import { API } from "../config";
 
 const ToolbarButton = ({
   command,

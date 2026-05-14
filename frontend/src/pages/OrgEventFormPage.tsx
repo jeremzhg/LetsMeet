@@ -35,7 +35,7 @@ interface OrgEventSummary {
   id: string;
 }
 
-const API = "http://localhost:3000";
+import { API } from "../config";
 
 export const OrgEventFormPage = () => {
   const { id: eventID } = useParams<{ id: string }>();

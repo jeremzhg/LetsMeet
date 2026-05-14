@@ -18,7 +18,7 @@ import { CorpDashboardPage } from "./pages/CorpDashboardPage";
 import { CorpOrganizationsPage } from "./pages/CorpOrganizationsPage";
 import { CorpPartnershipsPage } from "./pages/CorpPartnershipsPage";
 
-const API = "http://localhost:3000";
+import { API } from "./config";
 
 const HomeRedirect = () => {
   const [targetPath, setTargetPath] = useState<string | null>(null);

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { API } from "../config";
 import { Link, useNavigate } from "react-router-dom";
 import emailLogo from "../assets/images/email-logo.png";
 import passwordLogo from "../assets/images/password-logo.png";
@@ -17,7 +18,7 @@ export const LoginPage = () => {
     setErrorMessage("");
 
     try {
-      const response = await fetch(`http://localhost:3000/auth/${loginType}/login`, {
+      const response = await fetch(`${API}/auth/${loginType}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -33,7 +34,7 @@ export const LoginPage = () => {
         const isCorp = data?.role === "corporation" || loginType === "corp";
         navigate(isCorp ? "/corp/dashboard" : "/org/dashboard");
       } else {
-        setErrorMessage(data.message || "Login failed. Please check your credentials.");
+        setErrorMessage(data.message || data.error || "Login failed. Please check your credentials.");
       }
     } catch (error) {
       console.error("Kesalahan jaringan:", error);

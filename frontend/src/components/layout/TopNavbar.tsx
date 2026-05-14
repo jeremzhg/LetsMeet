@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { API } from "../../config";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getInitials, toAbsoluteImageUrl } from "../../utils/image";
 
@@ -20,7 +21,7 @@ export const TopNavbar = () => {
   useEffect(() => {
     const loadNavbarUser = async () => {
       try {
-        const meRes = await fetch("http://localhost:3000/auth/me", {
+        const meRes = await fetch(`${API}/auth/me`, {
           credentials: "include",
         });
         const meData = await meRes.json();
@@ -36,8 +37,8 @@ export const TopNavbar = () => {
           : "corporation";
 
         const profileEndpoint = role === "organization"
-          ? "http://localhost:3000/org/profile"
-          : "http://localhost:3000/corp/profile";
+          ? `${API}/org/profile`
+          : `${API}/corp/profile`;
 
         const profileRes = await fetch(profileEndpoint, {
           credentials: "include",

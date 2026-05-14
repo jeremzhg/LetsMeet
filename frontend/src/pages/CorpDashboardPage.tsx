@@ -35,7 +35,7 @@ interface PartnerItem {
   status: "pending" | "accepted" | "rejected";
 }
 
-const API = "http://localhost:3000";
+import { API } from "../config";
 
 const isCorpRole = (role?: string) => role === "corp" || role === "corporation";
 

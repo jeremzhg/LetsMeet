@@ -21,7 +21,7 @@ interface GeneralMatchItem {
 
 type ScoreFilter = "all" | "high" | "medium" | "low";
 
-const API = "http://localhost:3000";
+import { API } from "../config";
 
 const isOrgRole = (role?: string) => role === "org" || role === "organization";
 

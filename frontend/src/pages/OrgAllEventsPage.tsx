@@ -49,7 +49,7 @@ interface EventCardData extends OrgEvent {
 
 type EventStatus = "pending" | "active" | "completed";
 
-const API = "http://localhost:3000";
+import { API } from "../config";
 
 const getEventPriority = (status: string) => {
   const normalized = status.toLowerCase();

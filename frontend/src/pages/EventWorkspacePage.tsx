@@ -60,7 +60,7 @@ interface OrgEventSummary {
 type EventStatus = "pending" | "active" | "completed";
 type PartnerStatus = "pending" | "accepted" | "rejected";
 
-const API = "http://localhost:3000";
+import { API } from "../config";
 
 type TabType = "matches" | "inbox";
 

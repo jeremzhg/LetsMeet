@@ -30,15 +30,15 @@ app.get("/", (req, res) => {
   res.send("hello world");
 });
 
-app.listen(port, () => {
-  console.log(`Listening on port ${port}`);
-});
-
 app.use("/auth", AuthRouter)
 app.use("/", EventManagementRouter)
 app.use("/partners", PartnerRouter)
 app.use("/matches", MatchingRouter)
 app.use("/", ProfileRouter)
+
+app.listen(port, () => {
+  console.log(`Listening on port ${port}`);
+});
 
 process.on("SIGINT", async () => {
   await disconnectDB();

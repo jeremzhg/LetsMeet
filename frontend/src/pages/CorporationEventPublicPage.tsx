@@ -44,7 +44,7 @@ interface PartnerItem {
   eventID: string;
 }
 
-const API = "http://localhost:3000";
+import { API } from "../config";
 
 export const CorporationEventPublicPage = () => {
   const navigate = useNavigate();

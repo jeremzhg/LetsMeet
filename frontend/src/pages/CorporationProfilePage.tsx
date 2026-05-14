@@ -41,7 +41,7 @@ interface PastEvent {
   status: string;
 }
 
-const API = "http://localhost:3000";
+import { API } from "../config";
 
 const ToolbarButton = ({
   command,

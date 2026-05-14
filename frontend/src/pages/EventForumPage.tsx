@@ -37,7 +37,7 @@ interface EventWithScore extends PublicEvent {
   reasoning?: string;
 }
 
-const API = "http://localhost:3000";
+import { API } from "../config";
 const eventImages = [eventTechImg, eventNetworkImg, eventCareerImg];
 
 const normalizeEventStatus = (status: string) => {

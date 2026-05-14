@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { API } from "../../config";
 import { useEffect, useState } from "react";
 
 interface NavItem {
@@ -79,7 +80,7 @@ export const Sidebar = ({ variant: _variant, ctaPosition = "bottom" }: SidebarPr
   useEffect(() => {
     const loadSidebarUser = async () => {
       try {
-        const meRes = await fetch("http://localhost:3000/auth/me", {
+        const meRes = await fetch(`${API}/auth/me`, {
           credentials: "include",
         });
         const meData = await meRes.json();
@@ -107,7 +108,7 @@ export const Sidebar = ({ variant: _variant, ctaPosition = "bottom" }: SidebarPr
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:3000/auth/logout", {
+      await fetch(`${API}/auth/logout`, {
         method: "POST",
         credentials: "include",
       });

@@ -19,7 +19,7 @@ interface PastEvent {
   status: string;
 }
 
-const API = "http://localhost:3000";
+import { API } from "../config";
 
 export const OrgCorporationHistoryPage = () => {
   const { id: corpID } = useParams<{ id: string }>();

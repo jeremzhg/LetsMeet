@@ -60,7 +60,7 @@ interface EventPartner {
   package?: { cost?: number } | null;
 }
 
-const API = "http://localhost:3000";
+import { API } from "../config";
 
 const getEventPriority = (status: string) => {
   const normalized = status.toLowerCase();

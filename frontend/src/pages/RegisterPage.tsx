@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { API } from "../config";
 import { Link, useNavigate } from "react-router-dom";
 import emailLogo from "../assets/images/email-logo.png";
 import passwordLogo from "../assets/images/password-logo.png";
@@ -446,8 +447,8 @@ export const RegisterPage = () => {
 
     const endpoint =
       role === "corp"
-        ? "http://localhost:3000/auth/corp/register"
-        : "http://localhost:3000/auth/org/register";
+        ? `${API}/auth/corp/register`
+        : `${API}/auth/org/register`;
 
     const body: Record<string, string> =
       role === "corp"
@@ -467,7 +468,7 @@ export const RegisterPage = () => {
       if (response.ok) {
         navigate("/login");
       } else {
-        setErrorMessage(data.message || "Registration failed. Please try again.");
+        setErrorMessage(data.message || data.error || "Registration failed. Please try again.");
       }
     } catch (error) {
       console.error("Network error:", error);
