@@ -33,6 +33,9 @@ interface PartnerItem {
   eventID: string;
   corporationID: string;
   status: "pending" | "accepted" | "rejected";
+  event?: {
+    title: string;
+  };
 }
 
 import { API } from "../config";
@@ -98,6 +101,10 @@ export const CorpDashboardPage = () => {
       pending,
     };
   }, [orgMatches, eventMatches, partners]);
+
+  const pendingPartners = partners
+  .filter((p) => p.status === "pending")
+  .slice(0, 3);
 
   const topOrg = orgMatches[0];
   const topEvent = eventMatches[0];
@@ -213,10 +220,40 @@ export const CorpDashboardPage = () => {
                 Manage
               </Link>
             </div>
-            <p className="text-sm text-gray-600">
-              You currently have {partners.length} total partnerships across your sponsored events.
-              {corpID ? "" : ""}
-            </p>
+
+            {pendingPartners.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-600 mb-3">
+                  {stats.pending} Pending Response{stats.pending !== 1 ? "s" : ""}
+                </p>
+                {pendingPartners.map((partner) => (
+                  <Link
+                    key={`${partner.eventID}:${partner.corporationID}`}
+                    to="/corp/partnerships"
+                    className="flex items-center justify-between rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 hover:border-amber-200 transition-colors"
+                  >
+                    <span className="text-sm font-semibold text-gray-900">
+                      {partner.event?.title || partner.eventID}
+                    </span>
+                    <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
+                      Pending
+                    </span>
+                  </Link>
+                ))}
+                {stats.pending > 3 && (
+                  <Link
+                    to="/corp/partnerships"
+                    className="block text-center text-xs font-semibold text-blue-600 hover:text-blue-700 pt-1"
+                  >
+                    +{stats.pending - 3} more pending
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600">
+                You have {partners.length} total partnerships. No pending responses.
+              </p>
+            )}
           </section>
         </div>
       </main>
