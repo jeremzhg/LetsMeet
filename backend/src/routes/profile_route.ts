@@ -8,6 +8,7 @@ import {
   updateCorpProfile,
   uploadCorpProfileImagePathById,
   uploadCorpProfileImagePath,
+  updateOrgProfile,
   uploadOrgProfileImagePath,
 } from "../controllers/profile_controller";
 
@@ -15,6 +16,7 @@ const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.get("/org/profile", authMiddleware, getOrgProfile);
+router.put("/org/profile", authMiddleware, updateOrgProfile);
 router.post("/org/profile/image", authMiddleware, upload.single("image"), uploadOrgProfileImagePath);
 
 router.get("/corp/profile", authMiddleware, getCorpProfile);

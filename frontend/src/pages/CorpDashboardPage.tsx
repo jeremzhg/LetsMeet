@@ -161,6 +161,49 @@ export const CorpDashboardPage = () => {
             </div>
           </div>
 
+          <section className="mb-5 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-gray-900">Partnerships</h2>
+              <Link to="/corp/partnerships" className="text-sm font-semibold text-blue-600 hover:text-blue-700">
+                Manage
+              </Link>
+            </div>
+
+            {pendingPartners.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-amber-600 mb-3">
+                  {stats.pending} Pending Response{stats.pending !== 1 ? "s" : ""}
+                </p>
+                {pendingPartners.map((partner) => (
+                  <Link
+                    key={`${partner.eventID}:${partner.corporationID}`}
+                    to="/corp/partnerships"
+                    className="flex items-center justify-between rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 hover:border-amber-200 transition-colors"
+                  >
+                    <span className="text-sm font-semibold text-gray-900">
+                      {partner.event?.title || partner.eventID}
+                    </span>
+                    <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
+                      Pending
+                    </span>
+                  </Link>
+                ))}
+                {stats.pending > 3 && (
+                  <Link
+                    to="/corp/partnerships"
+                    className="block text-center text-xs font-semibold text-blue-600 hover:text-blue-700 pt-1"
+                  >
+                    +{stats.pending - 3} more pending
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600">
+                You have {partners.length} total partnerships. No pending responses.
+              </p>
+            )}
+          </section>
+
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
               <div className="mb-3 flex items-center justify-between">
@@ -212,49 +255,6 @@ export const CorpDashboardPage = () => {
               )}
             </section>
           </div>
-
-          <section className="mt-5 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-            <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-gray-900">Partnerships</h2>
-              <Link to="/corp/partnerships" className="text-sm font-semibold text-blue-600 hover:text-blue-700">
-                Manage
-              </Link>
-            </div>
-
-            {pendingPartners.length > 0 ? (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-amber-600 mb-3">
-                  {stats.pending} Pending Response{stats.pending !== 1 ? "s" : ""}
-                </p>
-                {pendingPartners.map((partner) => (
-                  <Link
-                    key={`${partner.eventID}:${partner.corporationID}`}
-                    to="/corp/partnerships"
-                    className="flex items-center justify-between rounded-xl border border-amber-100 bg-amber-50 px-4 py-3 hover:border-amber-200 transition-colors"
-                  >
-                    <span className="text-sm font-semibold text-gray-900">
-                      {partner.event?.title || partner.eventID}
-                    </span>
-                    <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2 py-1 rounded-full">
-                      Pending
-                    </span>
-                  </Link>
-                ))}
-                {stats.pending > 3 && (
-                  <Link
-                    to="/corp/partnerships"
-                    className="block text-center text-xs font-semibold text-blue-600 hover:text-blue-700 pt-1"
-                  >
-                    +{stats.pending - 3} more pending
-                  </Link>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-600">
-                You have {partners.length} total partnerships. No pending responses.
-              </p>
-            )}
-          </section>
         </div>
       </main>
     </div>

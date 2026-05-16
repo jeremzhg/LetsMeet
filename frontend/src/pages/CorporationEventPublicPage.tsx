@@ -38,6 +38,7 @@ interface CorpMatch {
   score: number;
   aiReasoning?: string;
   reasoning?: string;
+  reasoning_corp?: string;
 }
 
 interface PartnerItem {
@@ -94,7 +95,7 @@ export const CorporationEventPublicPage = () => {
           const currentMatch = matches.find((m) => m.eventID === eventID);
           if (currentMatch) {
             setFitScore(currentMatch.score);
-            setFitReasoning(currentMatch.aiReasoning || currentMatch.reasoning || "");
+            setFitReasoning(currentMatch.reasoning_corp || currentMatch.aiReasoning || currentMatch.reasoning || "");
           }
 
           const partnersData = await partnersRes.json();

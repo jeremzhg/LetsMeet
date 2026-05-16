@@ -3,6 +3,7 @@ import {
 	getGeneralMatchesForCorporation,
 	getGeneralMatchesForOrganization,
 	getMatchesForCorporation,
+  updateMatchesForCorporation,
 	getMatchesForEvent,
 	updateGeneralMatchesForCorporation,
 	updateGeneralMatchesForOrganization,
@@ -18,6 +19,7 @@ router.get("/general/corp/:corporationID", getGeneralMatchesForCorporation);
 router.put("/general/corp/:corporationID", updateGeneralMatchesForCorporation);
 
 router.get("/corp/:corporationID/events", getMatchesForCorporation);
+router.put("/corp/:corporationID/events", updateMatchesForCorporation);
 
 router.get("/:eventID", getMatchesForEvent);
 router.put("/:eventID", updateMatchesForEvent);

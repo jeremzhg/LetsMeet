@@ -60,10 +60,18 @@ async function getOrgWithPastEventsById(id: string) {
   });
 }
 
+async function updateOrgById(id: string, data: Prisma.OrganizationUpdateInput): Promise<Organization> {
+  return await prisma.organization.update({
+    where: { id },
+    data,
+  });
+}
+
 export {
   findOrgByEmail,
   findOrgById,
   createOrg,
   getAllOrgsWithPastEvents,
   getOrgWithPastEventsById,
+  updateOrgById,
 }

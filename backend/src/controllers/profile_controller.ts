@@ -66,6 +66,43 @@ export const uploadOrgProfileImagePath = async (req: Request, res: Response) => 
   }
 };
 
+export const updateOrgProfile = async (req: Request, res: Response) => {
+  try {
+    const user = req.user;
+    if (!user || user.role !== "org") {
+      return res.status(403).json({ error: "forbidden" });
+    }
+
+    const { name, details } = req.body;
+    if (!name || !details) {
+      return res.status(400).json({ error: "name and details are required" });
+    }
+
+    const updatedOrg = await OrgRepo.updateOrgById(user.id, {
+      name: String(name),
+      details: String(details),
+    });
+
+    const imagePath = await getEntityImagePath("organizations", updatedOrg.id);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        id: updatedOrg.id,
+        name: updatedOrg.name,
+        email: updatedOrg.email,
+        details: updatedOrg.details,
+        imagePath,
+      },
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return res.status(409).json({ error: error.message });
+    }
+    return res.status(500).json({ error: "internal server error" });
+  }
+};
+
 export const getCorpProfile = async (req: Request, res: Response) => {
   try {
     const user = req.user;

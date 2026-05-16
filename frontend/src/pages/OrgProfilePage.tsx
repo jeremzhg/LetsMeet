@@ -120,15 +120,30 @@ export const OrgProfilePage = () => {
     const editorContent = editorRef.current?.innerHTML || "";
 
     try {
-      console.log("Profile data to save:", {
-        name: profile.name,
-        details: editorContent,
+      const res = await fetch(`${API}/org/profile`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          name: profile.name.trim(),
+          details: editorContent.trim(),
+        }),
       });
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      const data = await res.json();
 
-      alert("Profile saved successfully! (Note: No backend endpoint exists yet — see report.md)");
+      if (!res.ok || !data?.success) {
+        throw new Error(data?.error || "Failed to update profile");
+      }
+
+      setProfile((prev) => ({
+        ...prev,
+        name: data.data.name,
+        details: data.data.details,
+      }));
+      
     } catch (err) {
       console.error("Failed to save profile:", err);
+      alert(err instanceof Error ? err.message : "Unable to update profile");
     } finally {
       setSaving(false);
     }
