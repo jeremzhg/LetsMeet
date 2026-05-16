@@ -83,7 +83,7 @@ export const CorporationEventPublicPage = () => {
 
         if (isCorp) {
           const [matchesRes, partnersRes] = await Promise.all([
-            fetch(`${API}/corp/${user.id}/matches`, { credentials: "include" }),
+            fetch(`${API}/matches/corp/${user.id}/events`, { credentials: "include" }),
             fetch(`${API}/partners`, { credentials: "include" }),
           ]);
 
