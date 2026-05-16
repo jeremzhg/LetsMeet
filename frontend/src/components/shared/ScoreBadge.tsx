@@ -14,9 +14,9 @@ export const ScoreBadge = ({ score, size = "md", label }: ScoreBadgeProps) => {
   const color = getColor();
 
   const sizeMap = {
-    sm: { container: "w-12 h-12", fontSize: "text-sm", strokeWidth: 3, radius: 20 },
-    md: { container: "w-16 h-16", fontSize: "text-lg", strokeWidth: 3.5, radius: 28 },
-    lg: { container: "w-20 h-20", fontSize: "text-2xl", strokeWidth: 4, radius: 34 },
+    sm: { container: "w-12 h-12", fontSize: score === 100 ? "text-xs" : "text-sm", strokeWidth: 3, radius: 20 },
+    md: { container: "w-16 h-16", fontSize: score === 100 ? "text-base" : "text-lg", strokeWidth: 3.5, radius: 28 },
+    lg: { container: "w-20 h-20", fontSize: score === 100 ? "text-xl" : "text-2xl", strokeWidth: 4, radius: 34 },
   };
 
   const s = sizeMap[size];
@@ -48,7 +48,7 @@ export const ScoreBadge = ({ score, size = "md", label }: ScoreBadgeProps) => {
             className="transition-all duration-700 ease-out"
           />
         </svg>
-        <span className={`relative font-bold ${s.fontSize} ${color.text}`}>
+        <span className={`relative font-bold leading-none tabular-nums ${s.fontSize} ${color.text}`}>
           {Math.round(score)}
         </span>
       </div>
