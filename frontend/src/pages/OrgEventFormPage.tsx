@@ -378,7 +378,7 @@ export const OrgEventFormPage = () => {
                       type="file"
                       accept="image/*"
                       onChange={(e) => setImageFile(e.target.files?.[0] || null)}
-                      className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-700 placeholder-gray-400 outline-none transition-all focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                      className="w-full cursor-pointer rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-700 outline-none transition-all file:mr-4 file:cursor-pointer file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-1.5 file:text-sm file:font-semibold file:text-white file:transition-all hover:file:bg-blue-700 focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
                     />
                     {isEditMode && (
                       <button
@@ -394,11 +394,6 @@ export const OrgEventFormPage = () => {
                   {imageFile && (
                     <p className="mt-2 text-xs text-gray-500">Selected: {imageFile.name}</p>
                   )}
-                  <p className="mt-2 text-xs text-gray-400">
-                    {isEditMode
-                      ? "The server auto-generates a filename from event id + UUID."
-                      : "The selected image uploads automatically after the event is created."}
-                  </p>
                 </div>
               </div>
             </section>
