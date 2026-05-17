@@ -100,6 +100,16 @@ export const OrgDashboardPage = () => {
         const data = await res.json();
         if (data.user) {
           setUserID(data.user.id);
+          
+          try {
+            const profileRes = await fetch(`${API}/org/profile`, { credentials: "include" });
+            const profileData = await profileRes.json();
+            if (profileData.success && profileData.data?.name) {
+              setOrgName(profileData.data.name);
+            }
+          } catch (profileErr) {
+            console.error("Failed to fetch organization profile:", profileErr);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch user:", err);
@@ -141,9 +151,6 @@ export const OrgDashboardPage = () => {
           );
 
           setEvents(enrichedEvents);
-          if (eventsData.data?.[0]?.organization?.name) {
-            setOrgName(eventsData.data[0].organization.name);
-          }
         }
 
         const partnersRes = await fetch(`${API}/partners`, { credentials: "include" });
@@ -372,12 +379,6 @@ export const OrgDashboardPage = () => {
                 Here is an overview of your active partnerships and upcoming events.
               </p>
             </div>
-            <Link
-              to="/org/profile"
-              className="shrink-0 px-5 py-2.5 rounded-xl border border-gray-200 bg-white text-sm font-semibold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
-            >
-              View Public Profile
-            </Link>
           </div>
 
           <div className="flex gap-6">
