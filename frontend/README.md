@@ -1,5 +1,8 @@
 # Frontend
 
+Documentation: 
+either run the backend, and go to [http://localhost:3000/api-docs/](http://localhost:3000/api-docs/)
+or Check out the [specification file](../specification/README.md).
 If you need the backend to be running:
 1. Head to the root folder 
 ```bash
