@@ -52,11 +52,16 @@ export const LoginPage = () => {
         const isCorp = data?.role === "corporation" || loginType === "corp";
         navigate(isCorp ? "/corp/dashboard" : "/org/dashboard");
       } else {
-        setErrorMessage(data.message || data.error || "Login failed. Please check your credentials.");
+        let text = "Login failed. Please check your credentials.";
+        if (data.error === "not found") text = "Account not found with this email.";
+        if (data.error === "unauthorized access") text = "Incorrect password. Please try again.";
+        if (data.error === "bad request") text = "Please provide both email and password.";
+        
+        setErrorMessage(text);
       }
     } catch (error) {
       console.error("Kesalahan jaringan:", error);
-      setErrorMessage("Unable to connect to the server. Please ensure the backend is running.");
+      setErrorMessage("Unable to connect to the server. Please try again later.");
     }
   };
 
@@ -109,11 +114,6 @@ export const LoginPage = () => {
               </button>
             </div>
 
-            {errorMessage && (
-              <div className="mb-4 text-center text-sm font-medium text-red-500">
-                {errorMessage}
-              </div>
-            )}
             <InputField
               label="Email"
               type="email"
@@ -131,7 +131,7 @@ export const LoginPage = () => {
               placeholder="Your password"
               iconSrc={passwordLogo}
               iconAlt="Password icon"
-              containerClassName="mb-3"
+              containerClassName={errorMessage ? "mb-1" : "mb-3"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -144,8 +144,13 @@ export const LoginPage = () => {
                 </button>
               }
             />
+            {errorMessage && (
+              <div className="mb-3 px-2 text-sm font-semibold text-red-500 text-center w-full">
+                {errorMessage}
+              </div>
+            )}
 
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex items-center justify-between mt-2">
               <div className="text-sm text-gray-800">
                 Don't have an account?{" "}
                 <Link
