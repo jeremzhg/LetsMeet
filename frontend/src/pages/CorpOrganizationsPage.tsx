@@ -77,6 +77,7 @@ export const CorpOrganizationsPage = () => {
     if (!corporationID) return;
 
     setRefreshing(true);
+    setLoading(true);
     try {
       const res = await fetch(`${API}/matches/general/corp/${corporationID}`, {
         method: "PUT",
@@ -90,6 +91,7 @@ export const CorpOrganizationsPage = () => {
     } catch (error) {
       console.error("Failed to refresh organization matches:", error);
     } finally {
+      setLoading(false);
       setRefreshing(false);
     }
   };
