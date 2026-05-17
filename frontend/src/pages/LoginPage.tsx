@@ -145,15 +145,6 @@ export const LoginPage = () => {
               }
             />
 
-            <div className="mb-8">
-              <Link
-                to={""}
-                className="text-sm font-medium text-blue-500 underline transition-colors hover:text-blue-600"
-              >
-                Forgot password?
-              </Link>
-            </div>
-
             <div className="flex items-center justify-between mt-4">
               <div className="text-sm text-gray-800">
                 Don't have an account?{" "}
