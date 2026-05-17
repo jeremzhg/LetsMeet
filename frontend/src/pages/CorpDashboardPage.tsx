@@ -45,6 +45,7 @@ const isCorpRole = (role?: string) => role === "corp" || role === "corporation";
 export const CorpDashboardPage = () => {
   const navigate = useNavigate();
   const [corpID, setCorpID] = useState<string | null>(null);
+  const [corpName, setCorpName] = useState<string>("Corporation");
   const [loading, setLoading] = useState(true);
   const [orgMatches, setOrgMatches] = useState<CorpGeneralMatch[]>([]);
   const [eventMatches, setEventMatches] = useState<CorpEventMatch[]>([]);
@@ -64,6 +65,16 @@ export const CorpDashboardPage = () => {
         }
 
         setCorpID(user.id);
+        
+        try {
+          const profileRes = await fetch(`${API}/corp/profile`, { credentials: "include" });
+          const profileData = await profileRes.json();
+          if (profileData.success && profileData.data?.name) {
+            setCorpName(profileData.data.name);
+          }
+        } catch (profileErr) {
+          console.error("Failed to fetch corporation profile:", profileErr);
+        }
 
         const [orgRes, eventRes, partnerRes] = await Promise.all([
           fetch(`${API}/matches/general/corp/${user.id}`, { credentials: "include" }),
@@ -130,16 +141,9 @@ export const CorpDashboardPage = () => {
         <div className="mx-auto max-w-6xl px-8 py-8">
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Corporation Dashboard</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Welcome Back, {corpName}</h1>
               <p className="mt-1 text-gray-500">Track your best-fit opportunities and active sponsorship pipeline.</p>
             </div>
-
-            <Link
-              to="/corp/profile"
-              className="rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
-            >
-              Edit Profile
-            </Link>
           </div>
 
           <div className="mb-7 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -152,11 +156,11 @@ export const CorpDashboardPage = () => {
               <p className="mt-2 text-2xl font-bold text-gray-900">{stats.eventMatches}</p>
             </div>
             <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Accepted</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Accepted Partnerships</p>
               <p className="mt-2 text-2xl font-bold text-green-700">{stats.accepted}</p>
             </div>
             <div className="rounded-2xl border border-gray-100 bg-white p-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Pending</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">Pending Partnerships</p>
               <p className="mt-2 text-2xl font-bold text-amber-700">{stats.pending}</p>
             </div>
           </div>
