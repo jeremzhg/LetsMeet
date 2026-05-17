@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { API } from "../config";
 import { Link, useNavigate } from "react-router-dom";
 import emailLogo from "../assets/images/email-logo.png";
@@ -12,6 +12,24 @@ export const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
+        if (meRes.ok) {
+          const meData = await meRes.json();
+          const user = meData?.user;
+          if (user?.role) {
+            const isCorp = user.role === "corp" || user.role === "corporation";
+            navigate(isCorp ? "/corp/dashboard" : "/org/dashboard");
+          }
+        }
+      } catch (err) {
+      }
+    };
+    checkLogin();
+  }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -56,7 +56,7 @@ export const App = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<HomeRedirect />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/select-role" element={<SelectRolePage />} />
         <Route path="/register" element={<RegisterPage />} />
