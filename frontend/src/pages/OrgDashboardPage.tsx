@@ -5,6 +5,7 @@ import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusDropdown } from "../components/fields/StatusDropdown";
 import { StatusPill } from "../components/shared/StatusPill";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
+import { getInitials } from "../utils/image";
 
 interface OrgEvent {
   id: string;
@@ -516,7 +517,7 @@ export const OrgDashboardPage = () => {
                         className="offer-card flex items-start gap-4 rounded-2xl bg-white border border-gray-100 p-4 shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-300"
                       >
                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm">
-                          CORP
+                          {getInitials(offer.corporation?.name, 2)}
                         </div>
 
                         <div className="flex-1 min-w-0">
