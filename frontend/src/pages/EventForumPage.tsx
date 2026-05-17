@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusPill } from "../components/shared/StatusPill";
@@ -48,10 +48,13 @@ const normalizeEventStatus = (status: string) => {
 };
 
 export const EventForumPage = () => {
+  const location = useLocation();
+  const initialSearch = new URLSearchParams(location.search).get("search") || "";
+  
   const [userID, setUserID] = useState<string | null>(null);
   const [events, setEvents] = useState<EventWithScore[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [applyingIds, setApplyingIds] = useState<Set<string>>(new Set());
 

@@ -235,7 +235,7 @@ export const CorpOrganizationsPage = () => {
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-gray-500">Score: {Math.round(match.matchScore)}/100</p>
                     <Link
-                      to="/corp/events"
+                      to={`/corp/events?search=${encodeURIComponent(match.organization.name)}`}
                       className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-700 transition-colors hover:border-gray-300 hover:bg-gray-50"
                     >
                       Explore Their Events
