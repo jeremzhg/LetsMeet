@@ -17,6 +17,7 @@ interface PartnerItem {
     date: string;
     city: string;
     country: string;
+    status?: string;
     organization?: {
       id: string;
       name: string;
@@ -124,7 +125,42 @@ export const CorpPartnershipsPage = () => {
 
         return text.includes(query);
       })
-      .sort((a, b) => new Date(b.event.date).getTime() - new Date(a.event.date).getTime());
+      .sort((a, b) => {
+        // Sort by Partner status: pending (1) > accepted/ongoing (2) > rejected/completed (3)
+        const getPartnerRank = (status: string) => {
+          if (status === "pending") return 1;
+          if (status === "accepted") return 2;
+          if (status === "rejected") return 3;
+          return 4;
+        };
+
+        const pRankA = getPartnerRank(a.status);
+        const pRankB = getPartnerRank(b.status);
+
+        if (pRankA !== pRankB) {
+          return pRankA - pRankB;
+        }
+
+        // Sort by Event status: pending (1) > ongoing/active (2) > completed (3)
+        const getEventRank = (status?: string) => {
+          if (!status) return 4;
+          const s = status.toLowerCase();
+          if (s === "pending") return 1;
+          if (s === "ongoing" || s === "active") return 2;
+          if (s === "completed") return 3;
+          return 4;
+        };
+
+        const eRankA = getEventRank(a.event.status);
+        const eRankB = getEventRank(b.event.status);
+
+        if (eRankA !== eRankB) {
+          return eRankA - eRankB;
+        }
+
+        // Fallback to sort by date (newest first)
+        return new Date(b.event.date).getTime() - new Date(a.event.date).getTime();
+      });
   }, [partners, searchQuery, statusFilter]);
 
   const statusCounts = useMemo(() => {
