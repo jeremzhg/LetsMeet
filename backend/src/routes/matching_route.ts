@@ -1,7 +1,25 @@
 import { Router } from "express";
-import { getMatchesForEvent, updateMatchesForEvent } from "../controllers/matchscore_controller";
+import {
+	getGeneralMatchesForCorporation,
+	getGeneralMatchesForOrganization,
+	getMatchesForCorporation,
+  updateMatchesForCorporation,
+	getMatchesForEvent,
+	updateGeneralMatchesForCorporation,
+	updateGeneralMatchesForOrganization,
+	updateMatchesForEvent,
+} from "../controllers/matchscore_controller";
 
 const router = Router();
+
+router.get("/general/org/:organizationID", getGeneralMatchesForOrganization);
+router.put("/general/org/:organizationID", updateGeneralMatchesForOrganization);
+
+router.get("/general/corp/:corporationID", getGeneralMatchesForCorporation);
+router.put("/general/corp/:corporationID", updateGeneralMatchesForCorporation);
+
+router.get("/corp/:corporationID/events", getMatchesForCorporation);
+router.put("/corp/:corporationID/events", updateMatchesForCorporation);
 
 router.get("/:eventID", getMatchesForEvent);
 router.put("/:eventID", updateMatchesForEvent);

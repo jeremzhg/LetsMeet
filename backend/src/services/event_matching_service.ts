@@ -32,8 +32,10 @@ async function matchingService(eventID: string, corporationID?: string) {
           type: SchemaType.OBJECT,
           properties: {
             corporationID: { type: SchemaType.STRING, description: "The ID of the evaluated corporation" },
+            corporationEmail: { type: SchemaType.STRING, description: "The email of the evaluated corporation" },
             score: { type: SchemaType.NUMBER, description: "Compatibility score 0-100" },
             reasoning: { type: SchemaType.STRING, description: "Short explanation for the score. Maximum of 10 words" },
+            reasoning_corp: { type: SchemaType.STRING, description: "Short explanation on what the corporation's likely perspective is. Maximum of 10 words" },
           },
         },
       },
@@ -58,6 +60,7 @@ async function matchingService(eventID: string, corporationID?: string) {
       return `
       ID: ${corp.id}
       Name: ${corp.name}
+      EMAIL: ${corp.email}
       About: ${corp.details}
       Past Sponsorships: ${pastEvents.length > 0 ? pastEvents.join(", ") : "None"}
       `;
@@ -85,8 +88,8 @@ async function matchingService(eventID: string, corporationID?: string) {
       - Evaluate each corporation provided.
       - Assign a fit score (0-100). High score = specific industry alignment.
       - Low score = generic or irrelevant alignment.
-      - Provide a 1-sentence reasoning. Maximum of 10 words.
-      - Return an evaluation for every corporation provided with its corresponding corporationID.
+      - Provide a 1-sentence reasoning for the corporation and organization. Maximum of 10 words.
+      - Return an evaluation for every corporation provided with its corresponding corporationID and Email.
     `;
 
     try {
@@ -97,8 +100,7 @@ async function matchingService(eventID: string, corporationID?: string) {
 
       for (const evalResult of evaluations) {
         if (!evalResult.corporationID) continue;
-        console.log(`Corp ${evalResult.corporationID} - Score: ${evalResult.score}, Reasoning: ${evalResult.reasoning}`);
-        await upsertMatchScore(event.id, evalResult.corporationID, evalResult.score, evalResult.reasoning);
+        await upsertMatchScore(event.id, evalResult.corporationID, evalResult.score, evalResult.reasoning,evalResult.reasoning_corp);
       }
     } catch (error) {
       console.error(`Error processing chunk ${i / chunkSize + 1}:`, error);

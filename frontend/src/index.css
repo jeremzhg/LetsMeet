@@ -1,68 +1,106 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "tailwindcss";
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+@font-face {
+  font-family: "Roboto";
+  src: url("./assets/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf")
+    format("truetype");
+  font-weight: 100 900;
+  font-style: normal;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+@font-face {
+  font-family: "Roboto";
+  src: url("./assets/fonts/Roboto/Roboto-Italic-VariableFont_wdth,wght.ttf")
+    format("truetype");
+  font-weight: 100 900;
+  font-style: italic;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+@theme {
+  --font-roboto: "Roboto", sans-serif;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.bg-login-image {
+  background-image: url("./assets/images/login-bg.png");
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+.bg-signup-image {
+  background-image: url("./assets/images/signup-bg.png");
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.sidebar-nav-item {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
   }
-  a:hover {
-    color: #747bff;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
-  button {
-    background-color: #f9f9f9;
-  }
+}
+
+.event-card,
+.offer-card,
+.sponsor-card,
+.history-card,
+.match-card,
+.pipeline-card {
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+.event-card:nth-child(2) { animation-delay: 0.05s; }
+.event-card:nth-child(3) { animation-delay: 0.1s; }
+.event-card:nth-child(4) { animation-delay: 0.15s; }
+
+.offer-card:nth-child(2) { animation-delay: 0.05s; }
+.offer-card:nth-child(3) { animation-delay: 0.1s; }
+
+.sponsor-card:nth-child(2) { animation-delay: 0.05s; }
+.sponsor-card:nth-child(3) { animation-delay: 0.1s; }
+
+.history-card:nth-child(2) { animation-delay: 0.05s; }
+.history-card:nth-child(3) { animation-delay: 0.1s; }
+.history-card:nth-child(4) { animation-delay: 0.15s; }
+
+.match-card:nth-child(2) { animation-delay: 0.05s; }
+.match-card:nth-child(3) { animation-delay: 0.1s; }
+.match-card:nth-child(4) { animation-delay: 0.15s; }
+
+main::-webkit-scrollbar {
+  width: 6px;
+}
+main::-webkit-scrollbar-track {
+  background: transparent;
+}
+main::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+main::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+[contenteditable][data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
 }

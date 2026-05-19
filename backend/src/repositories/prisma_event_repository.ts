@@ -32,7 +32,9 @@ export async function createEvent(data: {
   details: string;
   country: string;
   city: string;
+  venue: string;
   expectedParticipants: number;
+  targetSponsorValue: number;
   organizationID: string;
   packages?: { title: string; cost: number; details: string }[];
 }): Promise<Events> {
@@ -43,7 +45,9 @@ export async function createEvent(data: {
       date: new Date(data.date),
       country: data.country,
       city: data.city,
+      venue: data.venue,
       expectedParticipants: data.expectedParticipants,
+      targetSponsorValue: data.targetSponsorValue,
       organization: {
         connect: { id: data.organizationID },
       },
@@ -79,7 +83,9 @@ export async function updateEvent(
     details: string;
     country: string;
     city: string;
+    venue: string;
     expectedParticipants: number;
+    targetSponsorValue: number;
     status: string;
     packages: { id?: string; title: string; cost: number; details: string }[];
   }>

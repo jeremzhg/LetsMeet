@@ -13,6 +13,16 @@ async function createCorp(data: Prisma.CorporationCreateInput): Promise<Corporat
   });
 };
 
+async function updateCorpById(
+  id: string,
+  data: Prisma.CorporationUncheckedUpdateInput
+): Promise<Corporation> {
+  return await prisma.corporation.update({
+    where: { id },
+    data,
+  });
+}
+
 async function findCorpById (id: string): Promise<Corporation | null>{
   return await prisma.corporation.findUnique({
     where: {id},
@@ -73,4 +83,4 @@ async function getCorpWithPastEventsById(id: string) {
   });
 }
 
-export {findCorpByEmail, findCorpById, claimCorp, createCorp, getAllCorpsWithPastEvents, getCorpWithPastEventsById}
+export {findCorpByEmail, findCorpById, claimCorp, createCorp, updateCorpById, getAllCorpsWithPastEvents, getCorpWithPastEventsById}

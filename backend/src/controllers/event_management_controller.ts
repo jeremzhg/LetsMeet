@@ -1,9 +1,20 @@
 import { Request, Response } from "express";
 import * as EventRepo from "../repositories/prisma_event_repository";
+import { getEntityImagePath, setEntityImageFromUpload } from "../utils/image_storage";
+
+const attachEventImagePath = async <T extends { id: string }>(events: T[]) => {
+  return Promise.all(
+    events.map(async (event) => ({
+      ...event,
+      imagePath: await getEntityImagePath("events", event.id),
+    }))
+  );
+};
 
 export const getAllEvents = async (req: Request, res: Response) => {
   try {
-    const events = await EventRepo.getAllEvents();
+    let events = await EventRepo.getAllEvents();
+    events = await attachEventImagePath(events);
 
     return res.status(200).json({
       success: true,
@@ -20,7 +31,17 @@ export const getAllEvents = async (req: Request, res: Response) => {
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
-    const { title, date, details, country, city, expectedParticipants, packages } = req.body;
+    const {
+      title,
+      date,
+      details,
+      country,
+      city,
+      venue,
+      expectedParticipants,
+      targetSponsorValue,
+      packages,
+    } = req.body;
 
     const organizationID = (req as any).user.id;
     const role = (req as any).user.role;
@@ -30,9 +51,19 @@ export const createEvent = async (req: Request, res: Response) => {
         message: "Forbidden: Only organizations can create events.",
       });
     }
-    if (!title || !date || !details || !country || !city || expectedParticipants == null) {
+    if (
+      !title ||
+      !date ||
+      !details ||
+      !country ||
+      !city ||
+      !venue ||
+      expectedParticipants == null ||
+      targetSponsorValue == null
+    ) {
       return res.status(400).json({
-        message: "Missing required fields: title, date, details, country, city, or expectedParticipants",
+        message:
+          "Missing required fields: title, date, details, country, city, venue, expectedParticipants, or targetSponsorValue",
       });
     }
 
@@ -42,7 +73,9 @@ export const createEvent = async (req: Request, res: Response) => {
       details,
       country,
       city,
+      venue,
       expectedParticipants: Number(expectedParticipants),
+      targetSponsorValue: Number(targetSponsorValue),
       organizationID,
       packages,
     });
@@ -73,9 +106,14 @@ export const getEventById = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Event not found" });
     }
 
+    const imagePath = await getEntityImagePath("events", event.id);
+
     return res.status(200).json({
       success: true,
-      data: event,
+      data: {
+        ...event,
+        imagePath,
+      },
     });
   } catch (error: unknown) {
     if (error instanceof Error) {
@@ -88,7 +126,18 @@ export const getEventById = async (req: Request, res: Response) => {
 export const updateEvent = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { title, date, details, country, city, expectedParticipants, status, packages } = req.body;
+    const {
+      title,
+      date,
+      details,
+      country,
+      city,
+      venue,
+      expectedParticipants,
+      targetSponsorValue,
+      status,
+      packages,
+    } = req.body;
 
     const updatedEvent = await EventRepo.updateEvent(id as string, {
       title,
@@ -96,7 +145,9 @@ export const updateEvent = async (req: Request, res: Response) => {
       details,
       country,
       city,
+      venue,
       expectedParticipants: expectedParticipants ? Number(expectedParticipants) : undefined,
+      targetSponsorValue: targetSponsorValue ? Number(targetSponsorValue) : undefined,
       status,
       packages,
     });
@@ -122,7 +173,8 @@ export const getOrgEvents = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "User ID is required" });
     }
 
-    const events = await EventRepo.getEventsByOrgID(userID as string);
+    let events = await EventRepo.getEventsByOrgID(userID as string);
+    events = await attachEventImagePath(events);
 
     return res.status(200).json({
       success: true,
@@ -145,7 +197,8 @@ export const getCorpEvents = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "User ID is required" });
     }
 
-    const events = await EventRepo.getEventsByCorpID(userID as string);
+    let events = await EventRepo.getEventsByCorpID(userID as string);
+    events = await attachEventImagePath(events);
 
     return res.status(200).json({
       success: true,
@@ -192,16 +245,49 @@ export const getPastEventsForCorporation = async (req: Request, res: Response) =
       return res.status(400).json({ error: "Corporation ID is required" });
     }
 
-    const events = await EventRepo.getPastEventsForCorporation(
+    let events = await EventRepo.getPastEventsForCorporation(
       corpID as string, 
       eventStatus as string, 
       partnerStatus as string
     );
+    events = await attachEventImagePath(events);
 
     return res.status(200).json({
       success: true,
       count: events.length,
       data: events,
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      return res.status(409).json({ error: error.message });
+    }
+    return res.status(500).json({ error: "internal server error" });
+  }
+};
+
+export const uploadEventImagePath = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const file = req.file;
+
+    if (!id) {
+      return res.status(400).json({ error: "event id is required" });
+    }
+
+    if (!file) {
+      return res.status(400).json({ error: "image file is required" });
+    }
+
+    const imagePath = await setEntityImageFromUpload(
+      "events",
+      String(id),
+      file.originalname,
+      file.buffer
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: { imagePath },
     });
   } catch (error: unknown) {
     if (error instanceof Error) {

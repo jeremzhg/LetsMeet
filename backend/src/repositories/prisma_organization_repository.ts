@@ -19,4 +19,59 @@ async function findOrgById (id: string): Promise<Organization | null>{
   });
 };
 
-export {findOrgByEmail, findOrgById, createOrg}
+async function getAllOrgsWithPastEvents() {
+  return await prisma.organization.findMany({
+    include: {
+      events: {
+        where: {
+          status: "completed",
+        },
+        select: {
+          id: true,
+          title: true,
+          details: true,
+          city: true,
+          country: true,
+          venue: true,
+        },
+      },
+    },
+  });
+}
+
+async function getOrgWithPastEventsById(id: string) {
+  return await prisma.organization.findUnique({
+    where: { id },
+    include: {
+      events: {
+        where: {
+          status: "completed",
+        },
+        select: {
+          id: true,
+          title: true,
+          details: true,
+          city: true,
+          country: true,
+          venue: true,
+        },
+      },
+    },
+  });
+}
+
+async function updateOrgById(id: string, data: Prisma.OrganizationUpdateInput): Promise<Organization> {
+  return await prisma.organization.update({
+    where: { id },
+    data,
+  });
+}
+
+export {
+  findOrgByEmail,
+  findOrgById,
+  createOrg,
+  getAllOrgsWithPastEvents,
+  getOrgWithPastEventsById,
+  updateOrgById,
+}

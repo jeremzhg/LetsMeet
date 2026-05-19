@@ -19,6 +19,7 @@ model Organization {
   name           String
   hashedPassword String
   details        String
+  generalMatchScore GeneralMatchScore[]
   events         Events[]
 }
 
@@ -32,6 +33,7 @@ model Corporation {
   isClaimed      Boolean    @default(false)
   partners       Partners[]
   matchScores    MatchScore[]
+  generalMatchScore GeneralMatchScore[]
 }
 
 model Events {
@@ -42,6 +44,8 @@ model Events {
   country              String
   city                 String
   expectedParticipants Int
+  targetSponsorValue   Int
+  venue                String 
   organizationID       String
   status               String       @default("pending")
   organization         Organization @relation(fields: [organizationID], references: [id])
@@ -77,10 +81,21 @@ model MatchScore {
   eventID       String
   corporationID String
   score         Float
-  reasoning     String? @db.Text // Nullable as per ERD
-
+  reasoning     String? @db.Text
+  reasoning_corp String? @db.Text
   event       Events      @relation(fields: [eventID], references: [id])
   corporation Corporation @relation(fields: [corporationID], references: [id])
 
   @@id([eventID, corporationID])
+}
+
+model GeneralMatchScore{
+  corporationID String
+  organizationID String
+  matchScore Float
+  reasoning String
+  corporation Corporation @relation(fields: [corporationID], references: [id])
+  organization Organization @relation(fields: [organizationID], references: [id])
+
+  @@id([corporationID, organizationID])
 }
