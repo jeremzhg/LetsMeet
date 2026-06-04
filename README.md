@@ -16,15 +16,26 @@ Submission for Software Engineering Final Project
 * Docker
 
 ### Backend
-On the root folder, run:  
+Head to the backend folder
+
 ```bash
-docker-compose up --build -d
+cd backend
+```
+
+Run the docker (for database)
+```bash
+docker-compose up -d
+```
+
+Run the server
+```bash
+docker-compose up -d
 ```
 
 ### Frontend
 Head to the frontend folder
 ```bash
-cd frontend
+cd ../frontend
 ```
 
 Run the server  
