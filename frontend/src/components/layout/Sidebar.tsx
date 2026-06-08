@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { API } from "../../config";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useSession } from "../../context/SessionContext";
+import { apiFetch } from "../../utils/api";
 
 interface NavItem {
   label: string;
@@ -20,11 +21,6 @@ interface SidebarProps {
 }
 
 type UserRole = "org" | "corp";
-
-interface SidebarUser {
-  role: UserRole;
-}
-
 
 const DashboardIcon = () => (
   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -74,47 +70,19 @@ const corpNav: NavItem[] = [
 export const Sidebar = ({ variant: _variant, ctaPosition = "bottom" }: SidebarProps) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, clear } = useSession();
   const [collapsed, setCollapsed] = useState(false);
-  const [user, setUser] = useState<SidebarUser | null>(null);
 
-  useEffect(() => {
-    const loadSidebarUser = async () => {
-      try {
-        const meRes = await fetch(`${API}/auth/me`, {
-          credentials: "include",
-        });
-        const meData = await meRes.json();
-        const meUser = meData?.user;
-
-        if (!meUser?.id || !meUser?.role) {
-          setUser(null);
-          return;
-        }
-
-        const isOrg = meUser.role === "organization" || meUser.role === "org";
-        const role: UserRole = isOrg ? "org" : "corp";
-
-        setUser({ role });
-      } catch (error) {
-        console.error("Failed to load sidebar user", error);
-      }
-    };
-
-    loadSidebarUser();
-  }, []);
-
-  const currentRole: UserRole = user?.role || (location.pathname.startsWith("/events") || location.pathname.startsWith("/corp") ? "corp" : "org");
+  const currentRole: UserRole = user?.role === "corporation" || location.pathname.startsWith("/events") || location.pathname.startsWith("/corp") ? "corp" : "org";
   const navItems = currentRole === "org" ? orgNav : corpNav;
 
   const handleLogout = async () => {
     try {
-      await fetch(`${API}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
-      });
+      await apiFetch("/auth/logout", { method: "POST" });
     } catch (error) {
       console.error("Logout request failed", error);
     } finally {
+      clear();
       navigate("/login", { replace: true });
     }
   };
