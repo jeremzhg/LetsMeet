@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusDropdown } from "../components/fields/StatusDropdown";
 import { StatusPill } from "../components/shared/StatusPill";
+import { apiJson } from "../utils/api";
 import { getInitials } from "../utils/image";
 
 interface PartnerItem {
@@ -44,7 +45,6 @@ type PartnerStatusFilter = "all" | "pending" | "accepted" | "rejected";
 import { API } from "../config";
 
 export const OrgInboxPage = () => {
-  const navigate = useNavigate();
   const [partners, setPartners] = useState<PartnerItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<Set<string>>(new Set());
@@ -57,16 +57,6 @@ export const OrgInboxPage = () => {
       setLoading(true);
 
       try {
-        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const meData = await meRes.json();
-        const user = meData?.user;
-        const isOrg = user?.role === "org" || user?.role === "organization";
-
-        if (!user || !isOrg) {
-          navigate("/login", { replace: true });
-          return;
-        }
-
         const partnersRes = await fetch(`${API}/partners`, { credentials: "include" });
         const partnersData = await partnersRes.json();
 
@@ -81,7 +71,7 @@ export const OrgInboxPage = () => {
     };
 
     fetchPartners();
-  }, [navigate]);
+  }, []);
 
   const updatePartner = async (
     eventID: string,
@@ -95,16 +85,10 @@ export const OrgInboxPage = () => {
     setUpdating((prev) => new Set(prev).add(id));
 
     try {
-      const res = await fetch(`${API}/partners`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ eventID, corporationID, ...updates }),
-      });
+      await apiJson("/partners", { eventID, corporationID, ...updates }, { method: "PUT" });
 
-      if (res.ok) {
-        setPartners((prev) =>
-          prev.map((partner) => {
+      setPartners((prev) =>
+        prev.map((partner) => {
             if (partner.eventID !== eventID || partner.corporationID !== corporationID) {
               return partner;
             }
@@ -128,7 +112,6 @@ export const OrgInboxPage = () => {
             };
           })
         );
-      }
     } catch (error) {
       console.error("Failed to update partner:", error);
     } finally {
