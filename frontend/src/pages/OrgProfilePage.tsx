@@ -54,6 +54,11 @@ export const OrgProfilePage = () => {
   const [initialLoaded, setInitialLoaded] = useState(false);
 
   useEffect(() => {
+    if (!logoPreview) return;
+    return () => URL.revokeObjectURL(logoPreview);
+  }, [logoPreview]);
+
+  useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
       try {
