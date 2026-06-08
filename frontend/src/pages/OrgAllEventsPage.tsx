@@ -4,6 +4,7 @@ import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusDropdown } from "../components/fields/StatusDropdown";
 import { StatusPill } from "../components/shared/StatusPill";
+import { useSession } from "../context/SessionContext";
 import { toAbsoluteImageUrl } from "../utils/image";
 
 import eventTechImg from "../assets/images/event-tech-conference.png";
@@ -71,37 +72,20 @@ const eventImages = [eventTechImg, eventNetworkImg, eventCareerImg];
 
 export const OrgAllEventsPage = () => {
   const navigate = useNavigate();
-  const [userID, setUserID] = useState<string | null>(null);
+  const { user } = useSession();
+  const userID = user?.role === "organization" ? user.id : null;
   const [events, setEvents] = useState<EventCardData[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [updatingEventStatus, setUpdatingEventStatus] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const data = await res.json();
-        const role = data?.user?.role;
-        const isOrgRole = role === "org" || role === "organization";
+    if (!userID) {
+      setEvents([]);
+      setLoading(false);
+      return;
+    }
 
-        if (isOrgRole) {
-          setUserID(data.user.id);
-        } else {
-          setUserID(null);
-          setEvents([]);
-          setLoading(false);
-        }
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-        setLoading(false);
-      }
-    };
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
-    if (!userID) return;
     const fetchEvents = async () => {
       setLoading(true);
       try {
@@ -124,7 +108,8 @@ export const OrgAllEventsPage = () => {
                   .filter((p: PartnerInfo) => p.status === "accepted" && p.package)
                   .reduce((sum: number, p: PartnerInfo) => sum + (p.package?.cost || 0), 0);
               }
-            } catch {
+            } catch (error) {
+              console.error("Failed to fetch event partners:", error);
             }
 
             const progress = targetAmount > 0 ? Math.round((securedAmount / targetAmount) * 100) : 0;
@@ -337,13 +322,15 @@ export const OrgAllEventsPage = () => {
                               className="event-card group rounded-2xl bg-white border border-gray-100 overflow-hidden shadow-sm hover:shadow-lg hover:border-blue-100 transition-all duration-300"
                             >
                               <div className="relative h-40 overflow-hidden">
-                                <img
+                                  <img
                                   src={
                                     toAbsoluteImageUrl(event.imagePath) ||
                                     eventImages[index % eventImages.length]
                                   }
                                   alt={event.title}
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                  loading="lazy"
+                                  decoding="async"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                                 <div className="absolute top-3 right-3">
