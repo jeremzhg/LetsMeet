@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusPill } from "../components/shared/StatusPill";
+import { apiJson } from "../utils/api";
 
 type PartnerStatusFilter = "all" | "pending" | "accepted" | "rejected";
 
@@ -32,10 +33,8 @@ interface PartnerItem {
 }
 
 import { API } from "../config";
-const isCorpRole = (role?: string) => role === "corp" || role === "corporation";
 
 export const CorpPartnershipsPage = () => {
-  const navigate = useNavigate();
   const [partners, setPartners] = useState<PartnerItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<Set<string>>(new Set());
@@ -46,15 +45,6 @@ export const CorpPartnershipsPage = () => {
     const fetchPartners = async () => {
       setLoading(true);
       try {
-        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const meData = await meRes.json();
-        const user = meData?.user;
-
-        if (!user || !isCorpRole(user.role)) {
-          navigate("/login", { replace: true });
-          return;
-        }
-
         const partnersRes = await fetch(`${API}/partners`, { credentials: "include" });
         const partnersData = await partnersRes.json();
 
@@ -69,29 +59,22 @@ export const CorpPartnershipsPage = () => {
     };
 
     fetchPartners();
-  }, [navigate]);
+  }, []);
 
   const updatePartnerPackage = async (eventID: string, corporationID: string, packageID: string | null) => {
     const id = `${eventID}:${corporationID}`;
     setUpdating((prev) => new Set(prev).add(id));
 
     try {
-      const res = await fetch(`${API}/partners`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ eventID, corporationID, packageID }),
-      });
+      await apiJson("/partners", { eventID, corporationID, packageID }, { method: "PUT" });
 
-      if (res.ok) {
-        setPartners((prev) =>
-          prev.map((partner) =>
+      setPartners((prev) =>
+        prev.map((partner) =>
             partner.eventID === eventID && partner.corporationID === corporationID
               ? { ...partner, packageID }
               : partner
           )
         );
-      }
     } catch (error) {
       console.error("Failed to update package:", error);
     } finally {
