@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
+import { useSession } from "../context/SessionContext";
 import { getInitials } from "../utils/image";
 
 interface CorpGeneralMatch {
@@ -22,8 +23,6 @@ type ScoreFilter = "all" | "high" | "medium" | "low";
 
 import { API } from "../config";
 
-const isCorpRole = (role?: string) => role === "corp" || role === "corporation";
-
 const scoreFilterMatches = (score: number, filter: ScoreFilter) => {
   if (filter === "all") return true;
   if (filter === "high") return score >= 85;
@@ -32,8 +31,8 @@ const scoreFilterMatches = (score: number, filter: ScoreFilter) => {
 };
 
 export const CorpOrganizationsPage = () => {
-  const navigate = useNavigate();
-  const [corporationID, setCorporationID] = useState<string | null>(null);
+  const { user } = useSession();
+  const corporationID = user?.role === "corporation" ? user.id : null;
   const [matches, setMatches] = useState<CorpGeneralMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -41,21 +40,15 @@ export const CorpOrganizationsPage = () => {
   const [scoreFilter, setScoreFilter] = useState<ScoreFilter>("all");
 
   useEffect(() => {
+    if (!corporationID) {
+      setLoading(false);
+      return;
+    }
+
     const initializeAndFetch = async () => {
       setLoading(true);
       try {
-        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const meData = await meRes.json();
-        const user = meData?.user;
-
-        if (!user || !isCorpRole(user.role)) {
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        setCorporationID(user.id);
-
-        const matchesRes = await fetch(`${API}/matches/general/corp/${user.id}`, {
+        const matchesRes = await fetch(`${API}/matches/general/corp/${corporationID}`, {
           credentials: "include",
         });
         const matchesData = await matchesRes.json();
@@ -71,7 +64,7 @@ export const CorpOrganizationsPage = () => {
     };
 
     initializeAndFetch();
-  }, [navigate]);
+  }, [corporationID]);
 
   const handleRefreshMatches = async () => {
     if (!corporationID) return;
