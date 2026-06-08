@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
+import { useSession } from "../context/SessionContext";
 import { getInitials, toAbsoluteImageUrl } from "../utils/image";
 
 interface CorporationDetails {
@@ -67,6 +68,7 @@ const ToolbarButton = ({
 
 export const CorporationProfilePage = () => {
   const { id: corpID } = useParams<{ id: string }>();
+  const { user } = useSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const [corporation, setCorporation] = useState<CorporationDetails | null>(null);
@@ -85,19 +87,19 @@ export const CorporationProfilePage = () => {
   const [editDetails, setEditDetails] = useState("");
   const [initialLoaded, setInitialLoaded] = useState(false);
 
-  const isCorpRole = (role?: string) => role === "corp" || role === "corporation";
-  const isOrgRole = (role?: string) => role === "org" || role === "organization";
+  useEffect(() => {
+    if (!corpLogoPreview) return;
+    return () => URL.revokeObjectURL(corpLogoPreview);
+  }, [corpLogoPreview]);
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const meData = await meRes.json();
-        const meUser = meData?.user;
+        const meUser = user ? { id: user.id, role: user.rawRole } : null;
 
-        const isCorpSelf = Boolean(meUser && isCorpRole(meUser.role) && (!corpID || meUser.id === corpID));
-        const resolvedCorpID = corpID || meUser?.id || null;
+        const isCorpSelf = Boolean(user?.role === "corporation" && (!corpID || user.id === corpID));
+        const resolvedCorpID = corpID || (user?.role === "corporation" ? user.id : null);
 
         setCanUploadLogo(isCorpSelf);
         setProfileCorpID(resolvedCorpID);
@@ -118,8 +120,8 @@ export const CorporationProfilePage = () => {
           hasProfileData = true;
         }
         if (meUser) {
-          if (isOrgRole(meUser.role) && resolvedCorpID) {
-            const generalMatchRes = await fetch(`${API}/matches/general/org/${meUser.id}`, {
+          if (user?.role === "organization" && resolvedCorpID) {
+            const generalMatchRes = await fetch(`${API}/matches/general/org/${user.id}`, {
               credentials: "include",
             });
             const generalMatchData = await generalMatchRes.json();
@@ -135,7 +137,7 @@ export const CorporationProfilePage = () => {
             }
           }
 
-          if (isCorpRole(meUser.role) && resolvedCorpID) {
+          if (user?.role === "corporation" && resolvedCorpID) {
             const corpGeneralMatchRes = await fetch(`${API}/matches/general/corp/${resolvedCorpID}`, {
               credentials: "include",
             });
@@ -185,7 +187,7 @@ export const CorporationProfilePage = () => {
     };
 
     fetchData();
-  }, [corpID]);
+  }, [corpID, user]);
 
   useEffect(() => {
     setEditName(corporation?.name || "");
@@ -198,7 +200,7 @@ export const CorporationProfilePage = () => {
     if (initialLoaded && editorRef.current && editDetails) {
       editorRef.current.innerHTML = editDetails;
     }
-  }, [initialLoaded]);
+  }, [initialLoaded, editDetails]);
 
   const handleSaveProfile = async () => {
     if (!canUploadLogo) return;
