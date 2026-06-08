@@ -4,6 +4,8 @@ import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusPill } from "../components/shared/StatusPill";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
+import { useSession } from "../context/SessionContext";
+import { apiJson } from "../utils/api";
 import { toAbsoluteImageUrl } from "../utils/image";
 
 import eventTechImg from "../assets/images/event-tech-conference.png";
@@ -51,7 +53,8 @@ export const EventForumPage = () => {
   const location = useLocation();
   const initialSearch = new URLSearchParams(location.search).get("search") || "";
   
-  const [userID, setUserID] = useState<string | null>(null);
+  const { user } = useSession();
+  const userID = user?.role === "corporation" ? user.id : null;
   const [events, setEvents] = useState<EventWithScore[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState(initialSearch);
@@ -61,19 +64,6 @@ export const EventForumPage = () => {
   const filterOptions = ["Technology", "Under $5k", "Education", "Business"];
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const data = await res.json();
-        if (data.user) setUserID(data.user.id);
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-      }
-    };
-    fetchUser();
-  }, []);
-
-  useEffect(() => {
     const fetchEvents = async () => {
       setLoading(true);
       try {
@@ -81,8 +71,8 @@ export const EventForumPage = () => {
         const eventsData = await eventsRes.json();
         const allEvents: PublicEvent[] = eventsData.success ? eventsData.data || [] : [];
 
-        let matchMap = new Map<string, number>();
-        let reasoningMap = new Map<string, string>();
+        const matchMap = new Map<string, number>();
+        const reasoningMap = new Map<string, string>();
         if (userID) {
           try {
             const matchRes = await fetch(`${API}/matches/corp/${userID}/events`, {
@@ -94,7 +84,8 @@ export const EventForumPage = () => {
               matchMap.set(m.eventID, m.score);
               if (m.reasoning) reasoningMap.set(m.eventID, m.reasoning);
             });
-          } catch {
+          } catch (error) {
+            console.error("Failed to fetch match scores:", error);
           }
         }
 
@@ -162,12 +153,7 @@ export const EventForumPage = () => {
 
     setApplyingIds((prev) => new Set(prev).add(eventID));
     try {
-      await fetch(`${API}/partners`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ eventID, corporationID: userID }),
-      });
+      await apiJson("/partners", { eventID, corporationID: userID }, { method: "POST" });
     } catch (error) {
       console.error("Failed to apply for partnership:", error);
     } finally {
@@ -320,6 +306,8 @@ export const EventForumPage = () => {
                                     }
                                     alt={event.title}
                                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                    loading="lazy"
+                                    decoding="async"
                                   />
                                 </div>
                               </div>
