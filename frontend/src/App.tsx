@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { LoginPage } from "./pages/LoginPage";
 import { RegisterPage } from "./pages/RegisterPage";
@@ -17,69 +16,45 @@ import { OrgInboxPage } from "./pages/OrgInboxPage";
 import { CorpDashboardPage } from "./pages/CorpDashboardPage";
 import { CorpOrganizationsPage } from "./pages/CorpOrganizationsPage";
 import { CorpPartnershipsPage } from "./pages/CorpPartnershipsPage";
-
-import { API } from "./config";
-
-const HomeRedirect = () => {
-  const [targetPath, setTargetPath] = useState<string | null>(null);
-
-  useEffect(() => {
-    const resolveTarget = async () => {
-      try {
-        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const meData = await meRes.json();
-        const user = meData?.user;
-
-        if (!user?.role) {
-          setTargetPath("/login");
-          return;
-        }
-
-        const isCorp = user.role === "corp" || user.role === "corporation";
-        setTargetPath(isCorp ? "/corp/dashboard" : "/org/dashboard");
-      } catch {
-        setTargetPath("/login");
-      }
-    };
-
-    resolveTarget();
-  }, []);
-
-  if (!targetPath) {
-    return <div className="flex min-h-screen items-center justify-center text-sm text-gray-500">Loading...</div>;
-  }
-
-  return <Navigate to={targetPath} replace />;
-};
+import { SessionProvider } from "./context/SessionContext";
+import { HomeRedirect } from "./components/routing/HomeRedirect";
+import { ProtectedRoute } from "./components/routing/ProtectedRoute";
 
 export const App = () => {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomeRedirect />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/select-role" element={<SelectRolePage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/home" element={<HomeRedirect />} />
-        <Route path="/org/dashboard" element={<OrgDashboardPage />} />
-        <Route path="/org/events" element={<OrgAllEventsPage />} />
-        <Route path="/org/events/new" element={<OrgEventFormPage />} />
-        <Route path="/org/events/:id/edit" element={<OrgEventFormPage />} />
-        <Route path="/org/events/:id" element={<EventWorkspacePage />} />
-        <Route path="/org/profile" element={<OrgProfilePage />} />
-        <Route path="/org/corporations" element={<OrgCorporationsPage />} />
-        <Route path="/org/inbox" element={<OrgInboxPage />} />
-        <Route path="/corp/profile" element={<CorporationProfilePage />} />
-        <Route path="/corp/dashboard" element={<CorpDashboardPage />} />
-        <Route path="/corp/organizations" element={<CorpOrganizationsPage />} />
-        <Route path="/corp/events" element={<EventForumPage />} />
-        <Route path="/corp/partnerships" element={<CorpPartnershipsPage />} />
-        <Route path="/org/corporations/:id" element={<CorporationProfilePage />} />
-        <Route path="/org/corporations/:id/history" element={<OrgCorporationHistoryPage />} />
-        <Route path="/events" element={<EventForumPage />} />
-        <Route path="/partners" element={<CorpPartnershipsPage />} />
-        <Route path="/events/:id" element={<CorporationEventPublicPage />} />
-      </Routes>
+      <SessionProvider>
+        <Routes>
+          <Route path="/" element={<HomeRedirect />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/select-role" element={<SelectRolePage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/home" element={<HomeRedirect />} />
+          <Route element={<ProtectedRoute roles={["organization"]} />}>
+            <Route path="/org/dashboard" element={<OrgDashboardPage />} />
+            <Route path="/org/events" element={<OrgAllEventsPage />} />
+            <Route path="/org/events/new" element={<OrgEventFormPage />} />
+            <Route path="/org/events/:id/edit" element={<OrgEventFormPage />} />
+            <Route path="/org/events/:id" element={<EventWorkspacePage />} />
+            <Route path="/org/profile" element={<OrgProfilePage />} />
+            <Route path="/org/corporations" element={<OrgCorporationsPage />} />
+            <Route path="/org/inbox" element={<OrgInboxPage />} />
+            <Route path="/org/corporations/:id" element={<CorporationProfilePage />} />
+            <Route path="/org/corporations/:id/history" element={<OrgCorporationHistoryPage />} />
+          </Route>
+          <Route element={<ProtectedRoute roles={["corporation"]} />}>
+            <Route path="/corp/profile" element={<CorporationProfilePage />} />
+            <Route path="/corp/dashboard" element={<CorpDashboardPage />} />
+            <Route path="/corp/organizations" element={<CorpOrganizationsPage />} />
+            <Route path="/corp/events" element={<EventForumPage />} />
+            <Route path="/corp/partnerships" element={<CorpPartnershipsPage />} />
+            <Route path="/events" element={<EventForumPage />} />
+            <Route path="/partners" element={<CorpPartnershipsPage />} />
+            <Route path="/events/:id" element={<CorporationEventPublicPage />} />
+          </Route>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </SessionProvider>
     </BrowserRouter>
   );
 };
