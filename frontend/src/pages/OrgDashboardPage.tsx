@@ -5,6 +5,8 @@ import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusDropdown } from "../components/fields/StatusDropdown";
 import { StatusPill } from "../components/shared/StatusPill";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
+import { useSession } from "../context/SessionContext";
+import { apiJson } from "../utils/api";
 import { getInitials } from "../utils/image";
 
 interface OrgEvent {
@@ -83,8 +85,9 @@ const sortEventsByPriority = (eventList: OrgEvent[]) => {
 
 export const OrgDashboardPage = () => {
   const navigate = useNavigate();
-  const [orgName, setOrgName] = useState("Organization");
-  const [userID, setUserID] = useState<string | null>(null);
+  const { user, profile } = useSession();
+  const userID = user?.role === "organization" ? user.id : null;
+  const orgName = profile?.name || "Organization";
   const [events, setEvents] = useState<OrgEvent[]>([]);
   const [incomingOffers, setIncomingOffers] = useState<Partner[]>([]);
   const [recommendedSponsors, setRecommendedSponsors] = useState<MatchedCorp[]>([]);
@@ -95,32 +98,11 @@ export const OrgDashboardPage = () => {
   const [appliedPartnershipKeys, setAppliedPartnershipKeys] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const data = await res.json();
-        if (data.user) {
-          setUserID(data.user.id);
-          
-          try {
-            const profileRes = await fetch(`${API}/org/profile`, { credentials: "include" });
-            const profileData = await profileRes.json();
-            if (profileData.success && profileData.data?.name) {
-              setOrgName(profileData.data.name);
-            }
-          } catch (profileErr) {
-            console.error("Failed to fetch organization profile:", profileErr);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-      }
-    };
-    fetchUser();
-  }, []);
+    if (!userID) {
+      setLoading(false);
+      return;
+    }
 
-  useEffect(() => {
-    if (!userID) return;
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -143,7 +125,8 @@ export const OrgDashboardPage = () => {
                     .filter((p: EventPartner) => p.status === "accepted" && p.package)
                     .reduce((sum: number, p: EventPartner) => sum + Number(p.package?.cost || 0), 0);
                 }
-              } catch {
+              } catch (error) {
+                console.error("Failed to fetch event partners:", error);
               }
 
               const progress = targetAmount > 0 ? Math.round((securedAmount / targetAmount) * 100) : 0;
@@ -232,12 +215,7 @@ export const OrgDashboardPage = () => {
     status: "pending" | "accepted" | "rejected"
   ) => {
     try {
-      await fetch(`${API}/partners`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ eventID, corporationID, status }),
-      });
+      await apiJson("/partners", { eventID, corporationID, status }, { method: "PUT" });
 
       if (status === "rejected") {
         setIncomingOffers((prev) =>
@@ -266,12 +244,7 @@ export const OrgDashboardPage = () => {
     packageID: string | null
   ) => {
     try {
-      await fetch(`${API}/partners`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ eventID, corporationID, packageID }),
-      });
+      await apiJson("/partners", { eventID, corporationID, packageID }, { method: "PUT" });
 
       setIncomingOffers((prev) =>
         prev.map((p) => {
@@ -298,12 +271,7 @@ export const OrgDashboardPage = () => {
 
   const handleRequestPartnership = async (corporationID: string, eventID: string) => {
     try {
-      await fetch(`${API}/partners`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ eventID, corporationID }),
-      });
+      await apiJson("/partners", { eventID, corporationID }, { method: "POST" });
 
       setAppliedPartnershipKeys((prev) => {
         const next = new Set(prev);
