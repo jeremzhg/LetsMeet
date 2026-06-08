@@ -5,31 +5,20 @@ import emailLogo from "../assets/images/email-logo.png";
 import passwordLogo from "../assets/images/password-logo.png";
 import { InputField } from "../components/fields/InputField";
 import { HeroSection } from "../components/sections/AuthSection";
+import { useSession } from "../context/SessionContext";
 
 export const LoginPage = () => {
   const navigate = useNavigate();
+  const { user, refresh } = useSession();
   const [loginType, setLoginType] = useState<"org" | "corp">("org");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    const checkLogin = async () => {
-      try {
-        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
-        if (meRes.ok) {
-          const meData = await meRes.json();
-          const user = meData?.user;
-          if (user?.role) {
-            const isCorp = user.role === "corp" || user.role === "corporation";
-            navigate(isCorp ? "/corp/dashboard" : "/org/dashboard");
-          }
-        }
-      } catch (err) {
-      }
-    };
-    checkLogin();
-  }, [navigate]);
+    if (!user) return;
+    navigate(user.role === "corporation" ? "/corp/dashboard" : "/org/dashboard");
+  }, [navigate, user]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,7 +37,7 @@ export const LoginPage = () => {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("Berhasil login:", data);
+        await refresh();
         const isCorp = data?.role === "corporation" || loginType === "corp";
         navigate(isCorp ? "/corp/dashboard" : "/org/dashboard");
       } else {
