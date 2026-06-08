@@ -2,9 +2,12 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
+import { useSession } from "../context/SessionContext";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
 import { StatusPill } from "../components/shared/StatusPill";
+import { apiJson } from "../utils/api";
 import { toAbsoluteImageUrl } from "../utils/image";
+import eventTechImg from "../assets/images/event-tech-conference.png";
 
 interface EventPackage {
   id: string;
@@ -50,8 +53,9 @@ import { API } from "../config";
 export const CorporationEventPublicPage = () => {
   const navigate = useNavigate();
   const { id: eventID } = useParams<{ id: string }>();
-  const [corpID, setCorpID] = useState<string | null>(null);
-  const [viewerRole, setViewerRole] = useState<string | null>(null);
+  const { user } = useSession();
+  const corpID = user?.role === "corporation" ? user.id : null;
+  const viewerRole = user?.rawRole || null;
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [fitScore, setFitScore] = useState<number | null>(null);
   const [fitReasoning, setFitReasoning] = useState<string>("");
@@ -65,15 +69,7 @@ export const CorporationEventPublicPage = () => {
 
       setLoading(true);
       try {
-        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const meData = meRes.ok ? await meRes.json() : null;
-        const user = meData?.user;
-        const isCorp = user?.role === "corp" || user?.role === "corporation";
-
-        setViewerRole(user?.role || null);
-        if (isCorp) {
-          setCorpID(user.id);
-        }
+        const isCorp = user?.role === "corporation";
 
         const eventRes = await fetch(`${API}/org/events/${eventID}`, { credentials: "include" });
 
@@ -82,9 +78,9 @@ export const CorporationEventPublicPage = () => {
           setEvent(eventData.data || eventData);
         }
 
-        if (isCorp) {
+        if (isCorp && corpID) {
           const [matchesRes, partnersRes] = await Promise.all([
-            fetch(`${API}/matches/corp/${user.id}/events`, { credentials: "include" }),
+            fetch(`${API}/matches/corp/${corpID}/events`, { credentials: "include" }),
             fetch(`${API}/partners`, { credentials: "include" }),
           ]);
 
@@ -114,23 +110,22 @@ export const CorporationEventPublicPage = () => {
     };
 
     fetchPublicEventData();
-  }, [eventID, navigate]);
+  }, [eventID, user?.role, corpID]);
 
   const handleApply = async (packageID?: string) => {
     if (!eventID || !corpID || alreadyApplied) return;
 
     setApplying(true);
     try {
-      await fetch(`${API}/partners`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
+      await apiJson(
+        "/partners",
+        {
           eventID,
           corporationID: corpID,
           ...(packageID ? { packageID } : {}),
-        }),
-      });
+        },
+        { method: "POST" }
+      );
       setAlreadyApplied(true);
     } catch (error) {
       console.error("Failed to apply for partnership:", error);
@@ -210,9 +205,11 @@ export const CorporationEventPublicPage = () => {
             <section className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
               <div className="h-64 bg-gray-100">
                 <img
-                  src={toAbsoluteImageUrl(event.imagePath) || ""}
+                  src={toAbsoluteImageUrl(event.imagePath) || eventTechImg}
                   alt={event.title}
                   className="h-full w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
                 />
               </div>
 
