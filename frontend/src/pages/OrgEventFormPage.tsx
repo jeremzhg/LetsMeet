@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
+import { useSession } from "../context/SessionContext";
 import { toAbsoluteImageUrl } from "../utils/image";
 
 interface EventPackageInput {
@@ -41,6 +42,8 @@ export const OrgEventFormPage = () => {
   const { id: eventID } = useParams<{ id: string }>();
   const isEditMode = Boolean(eventID);
   const navigate = useNavigate();
+  const { user } = useSession();
+  const organizationID = user?.role === "organization" ? user.id : null;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -72,13 +75,8 @@ export const OrgEventFormPage = () => {
       setErrorMessage("");
 
       try {
-        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const meData = await meRes.json();
-        const role = meData?.user?.role;
-        const isOrgRole = role === "org" || role === "organization";
-
-        if (!meData?.user || !isOrgRole) {
-          navigate("/login", { replace: true });
+        if (!organizationID) {
+          setLoading(false);
           return;
         }
 
@@ -87,7 +85,7 @@ export const OrgEventFormPage = () => {
           return;
         }
 
-        const ownEventsRes = await fetch(`${API}/org/${meData.user.id}/events`, {
+        const ownEventsRes = await fetch(`${API}/org/${organizationID}/events`, {
           credentials: "include",
         });
         const ownEventsData = await ownEventsRes.json();
@@ -151,7 +149,7 @@ export const OrgEventFormPage = () => {
     };
 
     void init();
-  }, [eventID, isEditMode, navigate]);
+  }, [eventID, isEditMode, navigate, organizationID]);
 
   const packageSummary = useMemo(() => {
     return packages.reduce((acc, pkg) => {
