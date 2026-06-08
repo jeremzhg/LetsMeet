@@ -68,7 +68,7 @@ export const StatusDropdown = ({
       window.removeEventListener("resize", updatePlacement);
       window.removeEventListener("scroll", updatePlacement, true);
     };
-  }, [open, options.length]);
+  }, [open, options.length, size]);
 
   useEffect(() => {
     if (!open) return;
