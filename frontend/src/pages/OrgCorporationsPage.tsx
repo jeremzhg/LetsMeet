@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
+import { useSession } from "../context/SessionContext";
 import { getInitials } from "../utils/image";
 
 interface GeneralMatchItem {
@@ -22,8 +23,6 @@ interface GeneralMatchItem {
 type ScoreFilter = "all" | "high" | "medium" | "low";
 
 import { API } from "../config";
-
-const isOrgRole = (role?: string) => role === "org" || role === "organization";
 
 const scoreFilterMatches = (score: number, filter: ScoreFilter) => {
   if (filter === "all") return true;
@@ -54,8 +53,8 @@ const scoreTone = (score: number) => {
 };
 
 export const OrgCorporationsPage = () => {
-  const navigate = useNavigate();
-  const [organizationID, setOrganizationID] = useState<string | null>(null);
+  const { user } = useSession();
+  const organizationID = user?.role === "organization" ? user.id : null;
   const [matches, setMatches] = useState<GeneralMatchItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -64,21 +63,15 @@ export const OrgCorporationsPage = () => {
   const [scoreFilter, setScoreFilter] = useState<ScoreFilter>("all");
 
   useEffect(() => {
+    if (!organizationID) {
+      setLoading(false);
+      return;
+    }
+
     const initializeAndFetch = async () => {
       setLoading(true);
       try {
-        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const meData = await meRes.json();
-        const user = meData?.user;
-
-        if (!user || !isOrgRole(user.role)) {
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        setOrganizationID(user.id);
-
-        const matchesRes = await fetch(`${API}/matches/general/org/${user.id}`, {
+        const matchesRes = await fetch(`${API}/matches/general/org/${organizationID}`, {
           credentials: "include",
         });
         const matchesData = await matchesRes.json();
@@ -94,7 +87,7 @@ export const OrgCorporationsPage = () => {
     };
 
     initializeAndFetch();
-  }, [navigate]);
+  }, [organizationID]);
 
   const handleRefreshMatches = async () => {
     if (!organizationID) return;
