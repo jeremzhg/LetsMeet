@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { StatusDropdown } from "../components/fields/StatusDropdown";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
+import { useSession } from "../context/SessionContext";
 
 interface EventDetail {
   id: string;
@@ -61,12 +62,14 @@ type EventStatus = "pending" | "active" | "completed";
 type PartnerStatus = "pending" | "accepted" | "rejected";
 
 import { API } from "../config";
+import { apiJson } from "../utils/api";
 
 type TabType = "matches" | "inbox";
 
 export const EventWorkspacePage = () => {
   const { id: eventID } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const { user } = useSession();
+  const organizationID = user?.role === "organization" ? user.id : null;
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [matches, setMatches] = useState<MatchedCorp[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -88,23 +91,17 @@ export const EventWorkspacePage = () => {
 
   useEffect(() => {
     if (!eventID) return;
+    if (!organizationID) {
+      setLoading(false);
+      return;
+    }
 
     const fetchData = async () => {
       setLoading(true);
       setAccessDenied(false);
 
       try {
-        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const meData = await meRes.json();
-        const role = meData?.user?.role;
-        const isOrgRole = role === "org" || role === "organization";
-
-        if (!meData?.user || !isOrgRole) {
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        const orgEventsRes = await fetch(`${API}/org/${meData.user.id}/events`, {
+        const orgEventsRes = await fetch(`${API}/org/${organizationID}/events`, {
           credentials: "include",
         });
         const orgEventsData = await orgEventsRes.json();
@@ -145,7 +142,7 @@ export const EventWorkspacePage = () => {
     };
 
     fetchData();
-  }, [eventID, navigate]);
+  }, [eventID, organizationID]);
 
   const handleRefreshMatches = async () => {
     if (!eventID) return;
@@ -170,12 +167,7 @@ export const EventWorkspacePage = () => {
     if (!eventID) return;
     setSendingProposal((prev) => new Set(prev).add(corporationID));
     try {
-      await fetch(`${API}/partners`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ eventID, corporationID }),
-      });
+      await apiJson("/partners", { eventID, corporationID }, { method: "POST" });
       const partnerRes = await fetch(`${API}/org/events/${eventID}/partners`, {
         credentials: "include",
       });
@@ -198,12 +190,7 @@ export const EventWorkspacePage = () => {
     if (!eventID) return;
     setUpdatingPartnerStatus((prev) => new Set(prev).add(corporationID));
     try {
-      await fetch(`${API}/partners`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ eventID, corporationID, status }),
-      });
+      await apiJson("/partners", { eventID, corporationID, status }, { method: "PUT" });
       setPartners((prev) =>
         prev.map((p) =>
           p.corporationID === corporationID ? { ...p, status } : p
@@ -225,12 +212,7 @@ export const EventWorkspacePage = () => {
     setUpdatingPartnerStatus((prev) => new Set(prev).add(corporationID));
 
     try {
-      await fetch(`${API}/partners`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ eventID, corporationID, packageID }),
-      });
+      await apiJson("/partners", { eventID, corporationID, packageID }, { method: "PUT" });
 
       const selectedPackage = (event?.packages || []).find((pkg) => pkg.id === packageID) || null;
 
