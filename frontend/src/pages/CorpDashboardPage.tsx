@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { Sidebar } from "../components/layout/Sidebar";
 import { TopNavbar } from "../components/layout/TopNavbar";
 import { ScoreBadge } from "../components/shared/ScoreBadge";
+import { useSession } from "../context/SessionContext";
 
 interface CorpGeneralMatch {
   corporationID: string;
@@ -40,45 +41,27 @@ interface PartnerItem {
 
 import { API } from "../config";
 
-const isCorpRole = (role?: string) => role === "corp" || role === "corporation";
-
 export const CorpDashboardPage = () => {
-  const navigate = useNavigate();
-  const [corpID, setCorpID] = useState<string | null>(null);
-  const [corpName, setCorpName] = useState<string>("Corporation");
+  const { user, profile } = useSession();
+  const corpID = user?.role === "corporation" ? user.id : null;
+  const corpName = profile?.name || "Corporation";
   const [loading, setLoading] = useState(true);
   const [orgMatches, setOrgMatches] = useState<CorpGeneralMatch[]>([]);
   const [eventMatches, setEventMatches] = useState<CorpEventMatch[]>([]);
   const [partners, setPartners] = useState<PartnerItem[]>([]);
 
   useEffect(() => {
+    if (!corpID) {
+      setLoading(false);
+      return;
+    }
+
     const fetchData = async () => {
       setLoading(true);
       try {
-        const meRes = await fetch(`${API}/auth/me`, { credentials: "include" });
-        const meData = await meRes.json();
-        const user = meData?.user;
-
-        if (!user || !isCorpRole(user.role)) {
-          navigate("/login", { replace: true });
-          return;
-        }
-
-        setCorpID(user.id);
-        
-        try {
-          const profileRes = await fetch(`${API}/corp/profile`, { credentials: "include" });
-          const profileData = await profileRes.json();
-          if (profileData.success && profileData.data?.name) {
-            setCorpName(profileData.data.name);
-          }
-        } catch (profileErr) {
-          console.error("Failed to fetch corporation profile:", profileErr);
-        }
-
         const [orgRes, eventRes, partnerRes] = await Promise.all([
-          fetch(`${API}/matches/general/corp/${user.id}`, { credentials: "include" }),
-          fetch(`${API}/matches/corp/${user.id}/events`, { credentials: "include" }),
+          fetch(`${API}/matches/general/corp/${corpID}`, { credentials: "include" }),
+          fetch(`${API}/matches/corp/${corpID}/events`, { credentials: "include" }),
           fetch(`${API}/partners`, { credentials: "include" }),
         ]);
 
@@ -99,7 +82,7 @@ export const CorpDashboardPage = () => {
     };
 
     fetchData();
-  }, [navigate]);
+  }, [corpID]);
 
   const stats = useMemo(() => {
     const accepted = partners.filter((p) => p.status === "accepted").length;
