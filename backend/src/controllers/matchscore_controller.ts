@@ -101,9 +101,13 @@ async function getGeneralMatchesForOrganization(req: Request, res: Response) {
 
     let matchScores = await getGeneralMatchScoresByOrganizationID(String(organizationID));
 
-    if (matchScores.length <= 5) {
-      await generalMatchingService(String(organizationID), "organization");
-      matchScores = await getGeneralMatchScoresByOrganizationID(String(organizationID));
+    if (matchScores.length === 0) {
+      try {
+        await generalMatchingService(String(organizationID), "organization");
+        matchScores = await getGeneralMatchScoresByOrganizationID(String(organizationID));
+      } catch (error) {
+        console.error("Error generating general organization match scores:", error);
+      }
     }
 
     return res.status(200).json({
@@ -144,9 +148,13 @@ async function getGeneralMatchesForCorporation(req: Request, res: Response) {
 
     let matchScores = await getGeneralMatchScoresByCorporationID(String(corporationID));
 
-    if (matchScores.length <= 5) {
-      await generalMatchingService(String(corporationID), "corporation");
-      matchScores = await getGeneralMatchScoresByCorporationID(String(corporationID));
+    if (matchScores.length === 0) {
+      try {
+        await generalMatchingService(String(corporationID), "corporation");
+        matchScores = await getGeneralMatchScoresByCorporationID(String(corporationID));
+      } catch (error) {
+        console.error("Error generating general corporation match scores:", error);
+      }
     }
 
     return res.status(200).json({
